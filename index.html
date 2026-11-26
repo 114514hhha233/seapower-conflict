@@ -2409,6 +2409,62 @@ body {
 .mb-row.tut li { margin: 4px 0; color: #d3e8f1; font-size: 12px; line-height: 1.55; }
 .mb-row.tut li i { font-style: normal; color: #ffd98a; font-weight: 600; }
 
+/* ===== v35 续弹补给 / 关注作者 ===== */
+.refill-mask {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 96 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 12px !important;
+  background: rgba(3, 10, 16, .86) !important;
+  backdrop-filter: blur(3px) !important;
+  pointer-events: auto !important;
+}
+.refill-mask.hidden { display: none !important; }
+.refill-card {
+  width: min(86vw, 430px) !important;
+  padding: 13px 14px 12px !important;
+  background: linear-gradient(180deg, rgba(9, 26, 36, .99), rgba(5, 16, 23, .99)) !important;
+  border: 1px solid rgba(255, 212, 121, .5) !important;
+  border-radius: 11px !important;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .6) !important;
+  color: #d9edf5 !important;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+}
+.rf-head { display: flex !important; align-items: center !important; justify-content: space-between !important; margin-bottom: 6px !important; }
+.rf-head b { color: #ffd479 !important; font-size: 16px !important; letter-spacing: 2px !important; }
+.rf-head button { border: 0 !important; background: transparent !important; color: #9fd7e6 !important; font-size: 21px !important; line-height: 1 !important; cursor: pointer !important; }
+.rf-sub { margin: 0 0 10px !important; color: #9fc2ce !important; font-size: 11.5px !important; }
+.rf-follow {
+  display: block !important;
+  margin: 8px 0 10px !important;
+  padding: 9px 10px !important;
+  text-align: center !important;
+  color: #101820 !important;
+  background: #ffd479 !important;
+  border-radius: 7px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+.rf-check { display: flex !important; align-items: center !important; gap: 7px !important; color: #d3e8f1 !important; font-size: 12px !important; }
+.rf-check input { width: 17px !important; height: 17px !important; accent-color: #ffd479 !important; }
+.rf-actions { display: flex !important; gap: 8px !important; margin-top: 12px !important; }
+.rf-actions button {
+  flex: 1 !important;
+  min-height: 38px !important;
+  border: 1px solid rgba(95, 227, 255, .32) !important;
+  border-radius: 7px !important;
+  background: rgba(10, 31, 43, .9) !important;
+  color: #bfe8f4 !important;
+  font: 600 13px/1 "Microsoft YaHei", sans-serif !important;
+  cursor: pointer !important;
+}
+.rf-actions #rf-claim { background: rgba(255, 212, 121, .9) !important; color: #101820 !important; border-color: #ffd479 !important; }
+.rf-actions button:disabled { opacity: .35 !important; cursor: not-allowed !important; }
+
 </style>
 </head>
 <body>
@@ -4387,6 +4443,7 @@ body {
         },
         deploy: { blue: { x: 0, z: -15000, heading: 0 }, red: { x: 0, z: 15000, heading: 180 } },
         objectives: [{ kind: 'destroy_all', text: '击沉埃拉特号' }],
+        ammoScale: 2,
         limit: 600
       },
       {
@@ -4406,6 +4463,7 @@ body {
         },
         deploy: { blue: { x: -18000, z: -23000, heading: 20 }, red: { x: 18000, z: 23000, heading: 200 } },
         objectives: [{ kind: 'destroy_all', text: '击沉全部敌方导弹艇' }],
+        ammoScale: 2,
         limit: 540
       },
       {
@@ -4425,6 +4483,7 @@ body {
         },
         deploy: { blue: { x: 0, z: -26000, heading: 0 }, red: { x: 0, z: 26000, heading: 180 } },
         objectives: [{ kind: 'destroy_all', text: '击沉敌方发射阵位（或撑过 5 分钟）' }, { kind: 'survive', sec: 300, text: '谢菲尔德号坚持 5 分钟' }],
+        ammoScale: 2,
         limit: 480
       },
       {
@@ -4444,6 +4503,7 @@ body {
         },
         deploy: { blue: { x: 0, z: -30000, heading: 0 }, red: { x: 0, z: 30000, heading: 180 } },
         objectives: [{ kind: 'destroy_all', text: '击沉全部敌方舰艇' }],
+        ammoScale: 2,
         limit: 600
       },
       {
@@ -4463,6 +4523,7 @@ body {
         },
         deploy: { blue: { x: -12000, z: -27000, heading: 10 }, red: { x: 14000, z: 27000, heading: 190 } },
         objectives: [{ kind: 'destroy_all', text: '击沉敌方全部导弹艇' }],
+        ammoScale: 2,
         limit: 540
       },
       {
@@ -4482,6 +4543,7 @@ body {
         },
         deploy: { blue: { x: 0, z: -33000, heading: 0 }, red: { x: 0, z: 33000, heading: 180 } },
         objectives: [{ kind: 'destroy_all', text: '肃清敌方水面编队' }],
+        ammoScale: 2,
         limit: 600
       },
       {
@@ -4501,6 +4563,7 @@ body {
         },
         deploy: { blue: { x: 0, z: -30000, heading: 0 }, red: { x: 6000, z: 30000, heading: 180 } },
         objectives: [{ kind: 'destroy_all', text: '击沉全部来袭快艇与护卫舰' }],
+        ammoScale: 2,
         limit: 480
       },
       {
@@ -4558,6 +4621,7 @@ body {
         },
         deploy: { blue: { x: 0, z: -34000, heading: 0 }, red: { x: 0, z: 34000, heading: 180 } },
         objectives: [{ kind: 'destroy_all', text: '击沉全部来袭无人艇' }],
+        ammoScale: 2,
         limit: 540
       }
     ],
@@ -4567,11 +4631,11 @@ body {
       { n: 1, name: 'Lv.1 · 单艇遭遇', desc: '一艘轻型护卫舰对一艘导弹艇。练手。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'light_frigate', n: 1, pennant: '501' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'osa205', n: 1, pennant: 'HS' }] } },
-        deploy: { blue: { x: 0, z: -20000, heading: 0 }, red: { x: 0, z: 20000, heading: 180 } }, limit: 420 },
+        deploy: { blue: { x: 0, z: -20000, heading: 0 }, red: { x: 0, z: 20000, heading: 180 } }, ammoScale: 2, limit: 420 },
       { n: 2, name: 'Lv.2 · 双艇夹击', desc: '两艘导弹艇从两翼压上。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'medium_frigate', n: 1, pennant: '547' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'osa205', n: 2, gap: 6000, pennant: 'HS' }] } },
-        deploy: { blue: { x: 0, z: -23000, heading: 0 }, red: { x: 0, z: 23000, heading: 180 } }, limit: 420 },
+        deploy: { blue: { x: 0, z: -23000, heading: 0 }, red: { x: 0, z: 23000, heading: 180 } }, ammoScale: 2, limit: 420 },
       { n: 3, name: 'Lv.3 · 护卫舰对护卫舰', desc: '同级别对轰，看谁先打出第一波。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'medium_frigate', n: 1, pennant: '547' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'perry_ffg', n: 1, pennant: 'FFG' }] } },
@@ -4579,7 +4643,7 @@ body {
       { n: 4, name: 'Lv.4 · 三艇快攻', desc: '三条导弹艇＋一艘老式驱逐舰。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'medium_destroyer', n: 1, pennant: '172' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'osa205', n: 3, gap: 2200, pennant: 'HS' }, { type: 'zclass', n: 1, gap: 9000, pennant: 'Z' }] } },
-        deploy: { blue: { x: 0, z: -28000, heading: 0 }, red: { x: 0, z: 28000, heading: 180 } }, limit: 480 },
+        deploy: { blue: { x: 0, z: -28000, heading: 0 }, red: { x: 0, z: 28000, heading: 180 } }, ammoScale: 2, limit: 480 },
       { n: 5, name: 'Lv.5 · 双护卫编队', desc: '两艘佩里级，反舰弹密度上来了。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'medium_destroyer', n: 1, pennant: '172' }, { type: 'light_frigate', n: 1, pennant: '501', gap: 4000 }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'perry_ffg', n: 2, gap: 5000, pennant: 'FFG' }] } },
@@ -4587,7 +4651,7 @@ body {
       { n: 6, name: 'Lv.6 · 谢菲尔德再现', desc: '42 型＋导弹艇混合编队。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'medium_destroyer', n: 1, pennant: '172' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'type42', n: 1, pennant: 'D80' }, { type: 'osa205', n: 2, gap: 6000, pennant: 'HS' }] } },
-        deploy: { blue: { x: 0, z: -33000, heading: 0 }, red: { x: 0, z: 33000, heading: 180 } }, limit: 540 },
+        deploy: { blue: { x: 0, z: -33000, heading: 0 }, red: { x: 0, z: 33000, heading: 180 } }, ammoScale: 2, limit: 540 },
       { n: 7, name: 'Lv.7 · 大驱对巡洋', desc: '055 单舰对提康德罗加。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'heavy_destroyer', n: 1, pennant: '101' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'aa_cruiser', n: 1, pennant: 'CG' }] } },
@@ -9870,7 +9934,16 @@ body {
       '<div class="hud-help">左键 选择 / 点海面 设航向 · 右键 锁定并发射 · 左键拖拽 平移 · 右键或 Shift+拖拽 旋转 · 滚轮 缩放 · Home 回本舰 · T 观察目标 · Q/E 旋向 · F/C 远近 · Space 暂停 · 1-4 倍速 · G 发射 · H 齐射 · Z 全速 · R 停车 · A 预警机</div>',
 
       '<div class="hud-alert" id="alert"></div>',
-      '<div class="hud-result" id="result"></div>'
+      '<div class="hud-result" id="result"></div>',
+      '<div class="refill-mask hidden" id="refill-mask">' +
+        '<div class="refill-card">' +
+          '<div class="rf-head"><b>续弹补给</b><button id="rf-close">×</button></div>' +
+          '<p class="rf-sub">备用补给：关注作者后，每关可把当前舰导弹补满一次。网页端无法读取B站账号状态，关注确认在本机记录。</p>' +
+          '<a class="rf-follow" id="rf-link" href="https://space.bilibili.com/604149349" target="_blank" rel="noopener">去B站关注 @不会取名的基米</a>' +
+          '<label class="rf-check"><input id="rf-check" type="checkbox" disabled> 我已关注，领取续弹</label>' +
+          '<div class="rf-actions"><button id="rf-cancel">取消</button><button id="rf-claim" disabled>领取续弹</button></div>' +
+        '</div>' +
+      '</div>'
     ].join('');
 
     document.body.appendChild(root);
@@ -9939,6 +10012,11 @@ body {
     this.logEl = root.querySelector('#log');
     this.alertEl = root.querySelector('#alert');
     this.resultEl = root.querySelector('#result');
+    this.refillMask = root.querySelector('#refill-mask');
+    this.refillCheck = root.querySelector('#rf-check');
+    this.refillClaim = root.querySelector('#rf-claim');
+    this.refillLink = root.querySelector('#rf-link');
+    this.bindRefill();
     this.mm = root.querySelector('#mm');
     this.mmCtx = this.mm.getContext('2d');
     this.rdInfo = root.querySelector('#rd-info');
@@ -10088,6 +10166,7 @@ body {
       { act: 'wsel', label: '武器', hint: '▾', cls: 'wsel wide' },
       { act: 'fire', label: '发射', hint: 'G', cls: 'hot' },
       { act: 'salvo', label: '齐射×3', hint: 'H', cls: 'hot' },
+      { act: 'refill', label: '续弹', hint: '备', cls: 'sen' },
       { act: 'radar', label: '雷达', hint: 'ON', cls: 'sen' },
       { act: 'rng', label: '量程', hint: '120', cls: 'sen' },
       { act: 'awacs', label: '预警机', hint: 'A', cls: 'sen' },
@@ -10483,6 +10562,49 @@ body {
     this.game.log('武器选择 —— ' + (d ? d.name : this.weapon) + '（' + Math.round((d ? d.range : 0) / 1000) + ' km）', 'hint');
   };
 
+  /* 续弹：关注作者后的备用补给；每关一次，补满当前舰导弹 */
+  HUD.prototype.bindRefill = function () {
+    var self = this;
+    if (!this.refillMask) return;
+    var saved = false;
+    try { saved = !!(window.localStorage && window.localStorage.getItem('sp_follow_author') === '1'); } catch (e) { }
+    var sync = function () {
+      if (!self.refillClaim) return;
+      self.refillClaim.disabled = !(self.refillCheck && self.refillCheck.checked);
+    };
+    var close = function () { self.refillMask.classList.add('hidden'); };
+    if (saved) { this.refillCheck.disabled = false; this.refillCheck.checked = true; }
+    sync();
+    if (this.refillLink) this.refillLink.addEventListener('click', function () {
+      // 打开B站主页后解锁关注确认；网页端无法验真，只做本机记录
+      setTimeout(function () { self.refillCheck.disabled = false; sync(); }, 0);
+    });
+    if (this.refillCheck) this.refillCheck.addEventListener('change', sync);
+    var cancel = this.refillMask.querySelector('#rf-cancel');
+    var closeBtn = this.refillMask.querySelector('#rf-close');
+    if (cancel) cancel.addEventListener('click', close);
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (this.refillClaim) this.refillClaim.addEventListener('click', function () {
+      if (!self.refillCheck.checked) return;
+      try { if (window.localStorage) window.localStorage.setItem('sp_follow_author', '1'); } catch (e) { }
+      var r = self.game.refillAmmo ? self.game.refillAmmo() : { ok: false, msg: '补给不可用' };
+      if (self.game.log) self.game.log(r.msg, r.ok ? 'hint' : 'warn');
+      if (r.ok) close();
+    });
+  };
+
+  HUD.prototype.openRefill = function () {
+    if (!this.refillMask) return;
+    var g = this.game;
+    if (!g.battle || g.result) { g.log('关卡战斗中才能申请续弹', 'warn'); return; }
+    if (g._refillUsed) { g.log('本关续弹已经领取过了', 'warn'); return; }
+    var saved = false;
+    try { saved = !!(window.localStorage && window.localStorage.getItem('sp_follow_author') === '1'); } catch (e) { }
+    this.refillCheck.disabled = !saved;
+    this.refillCheck.checked = saved;
+    this.refillClaim.disabled = !saved;
+    this.refillMask.classList.remove('hidden');
+  };
   // 发射按钮上的装填倒计时（CD）
   HUD.prototype.refreshCD = function () {
     var s = this.game.selected || this.game.blueMain;
@@ -10558,6 +10680,7 @@ body {
       case 'cmd': this.toggleCommand(); this.say('指挥图'); break;
       case 'fire': g.orderAttack(wid || 'yj18', 1); this.updateWeapon(); break;
       case 'salvo': g.orderAttack(wid || 'yj18', 3); this.updateWeapon(); break;
+      case 'refill': this.openRefill(); break;
       case 'wsel': this.cycleWeapon(); if (wid) this.say('武器，' + ((g.missilesById[wid] || {}).name || '')); break;
       case 'radar': this.radar.togglePower(); this.updateWeapon(); this.say(this.radar.power ? '雷达开机' : '雷达待机'); break;
       case 'rng': this.radar.cycleRange(); this.updateWeapon(); this.say('量程' + Math.round(this.radar.range() / 1000) + '公里'); break;
@@ -10714,6 +10837,33 @@ body {
       this.refreshViewTag();
     }
     this.updateWeaponCD();
+    this.updateRangeAlert();
+  };
+
+  /* 锁定目标进入当前反舰弹射程时提示一次；退出后重置，再次进入会再提示 */
+  HUD.prototype.updateRangeAlert = function () {
+    var g = this.game;
+    if (!g || g.paused || g.result) return;
+    var s = g.selected || g.blueMain;
+    var t = g.targetShip;
+    if (!s || !t || !t.alive) { this._rangeTarget = null; this._rangeWid = null; return; }
+    var wid = this.currentWeapon();
+    var def = wid && g.missilesById ? g.missilesById[wid] : null;
+    if (!def || !(def.role === 'as' || def.role === 'asm')) { this._rangeTarget = null; this._rangeWid = null; return; }
+    var dist = U.distXZ(s.pos, t.pos);
+    var inR = dist <= def.range;
+    if (inR && (this._rangeTarget !== t || this._rangeWid !== wid || !this._rangeIn)) {
+      var km = Math.round(dist / 1000);
+      g.log('目标进入 ' + def.name + ' 射程（' + km + ' km）—— 可以发射', 'hint');
+      if (window.SW && SW.Audio && SW.Audio.radio) {
+        SW.Audio.radio('目标进入导弹射程，可以发射', { role: 'radar', gap: 0 });
+      }
+      this._rangeIn = true;
+      this._rangeTarget = t;
+      this._rangeWid = wid;
+    } else if (!inR) {
+      this._rangeIn = false;
+    }
   };
 
   /* ------------------------------------------------------- 接触清单（目标管理） */
@@ -12326,6 +12476,17 @@ body {
       this.log(def.name + ' 装填中（' + (Math.ceil(s.reloadLeft(missileId) * 10) / 10) + 's）', 'warn');
       return;
     }
+    if (def && (def.role === 'as' || def.role === 'asm') && t) {
+      var distNow = U.distXZ(s.pos, t.pos);
+      if (distNow > def.range) {
+        var needKm = Math.ceil(distNow / 1000), maxKm = Math.round(def.range / 1000);
+        this.log('未发射：目标距离 ' + needKm + ' km，超出 ' + def.name + ' 射程 ' + maxKm + ' km，先靠近再打', 'warn');
+        if (window.SW && SW.Audio && SW.Audio.radio) {
+          SW.Audio.radio('目标超出射程，导弹未发射', { role: 'bridge', force: true, gap: 0 });
+        }
+        return;
+      }
+    }
     count = count || 1;
     var self = this, fired = 0;
     var gap = (def.salvoGap || 0.5) * 1000 / (this.timeScale || 1);
@@ -13315,6 +13476,7 @@ body {
     this.selected = null;
     this.targetShip = null;
     this.result = null;
+    this._refillUsed = false;
     this.follow = null;
     this.logs = [];
     this._redAwacsTimer = 28;
@@ -13372,6 +13534,21 @@ body {
       theirs = theirs.concat(spawnGroup(this, 'red', enForce.ships[b], enDep, enDep.heading));
     }
 
+    // 部分早期关卡导弹基数偏少，给玩家一侧补足（不加强敌方，避免对冲后仍然弹尽）
+    var ammoScale = mission.ammoScale || 1;
+    if (ammoScale > 1) {
+      mine.forEach(function (sh) {
+        Object.keys(sh.ammo || {}).forEach(function (id) {
+          sh.ammo[id] = Math.ceil(sh.ammo[id] * ammoScale);
+        });
+      });
+    }
+    // 记录本关满弹基数，供“关注后续弹”一键补满（不是简单加几发）
+    mine.forEach(function (sh) {
+      sh._ammoMax = {};
+      Object.keys(sh.ammo || {}).forEach(function (id) { sh._ammoMax[id] = sh.ammo[id]; });
+    });
+
     this.blueMain = mine[0] || null;
     this.redMain = theirs[0] || null;
     this.playerSide = side;
@@ -13423,6 +13600,31 @@ body {
       if (this.hud.hideResult) this.hud.hideResult();
     }
     this.paused = false;
+  };
+
+  /** 关注作者后的备用补给：每关一次，把玩家当前舰补回本关满弹基数 */
+  SW.Game.prototype.refillAmmo = function () {
+    if (!this.battle || this.battle.over || this.result) return { ok: false, msg: '当前不在战斗中' };
+    if (this._refillUsed) return { ok: false, msg: '本关续弹已经领取过了' };
+    var s = this.selected || this.blueMain;
+    if (!s || !s.alive || s.team !== 'blue') return { ok: false, msg: '请先选中一艘我方舰艇' };
+    if (!s._ammoMax) return { ok: false, msg: '本舰没有可补的导弹基数' };
+    var added = 0;
+    Object.keys(s._ammoMax).forEach(function (id) {
+      var have = s.ammo[id] || 0;
+      if (have < s._ammoMax[id]) { added += s._ammoMax[id] - have; s.ammo[id] = s._ammoMax[id]; }
+    });
+    if (!added) return { ok: false, msg: '弹药已满，不需要续弹' };
+    this._refillUsed = true;
+    this.log('补给完成 —— ' + s.pennant + ' 导弹补满（本关一次）', 'hint');
+    if (window.SW && SW.Audio) {
+      if (SW.Audio.radio) SW.Audio.radio('导弹补给完成，弹药已补满', { role: 'bridge', force: true, gap: 0 });
+    }
+    if (this.hud) {
+      if (this.hud.refreshAmmo) this.hud.refreshAmmo();
+      if (this.hud.updateWeapon) this.hud.updateWeapon();
+    }
+    return { ok: true, msg: '补给完成，补了 ' + added + ' 发导弹' };
   };
 
   /** 每帧判定（由 game.frame 调用） */
