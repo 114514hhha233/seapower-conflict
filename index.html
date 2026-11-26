@@ -2829,8 +2829,20 @@ body {
       return false;
     }
     A.master = A.ctx.createGain();
-    A.master.gain.value = A.enabled ? 0.86 : 0;
-    A.master.connect(A.ctx.destination);
+    A.master.gain.value = A.enabled ? 1.25 : 0;
+    // 手机小喇叭上原来的 0.86 总增益偏小；提高总增益后用压缩器兜住峰值，避免多枚导弹同时爆炸时削波
+    if (A.ctx.createDynamicsCompressor) {
+      A.comp = A.ctx.createDynamicsCompressor();
+      A.comp.threshold.value = -18;
+      A.comp.knee.value = 12;
+      A.comp.ratio.value = 4;
+      A.comp.attack.value = 0.003;
+      A.comp.release.value = 0.25;
+      A.master.connect(A.comp);
+      A.comp.connect(A.ctx.destination);
+    } else {
+      A.master.connect(A.ctx.destination);
+    }
     return true;
   };
 
@@ -3023,7 +3035,7 @@ body {
 
   A.setEnabled = function (on) {
     A.enabled = !!on;
-    if (A.master) A.master.gain.value = A.enabled ? 0.86 : 0;
+    if (A.master) A.master.gain.value = A.enabled ? 1.25 : 0;
     if (A.enabled) A.unlock();
     if (!A.enabled && window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch (e) { } }
   };
@@ -3033,7 +3045,7 @@ body {
   try {
     if (window.localStorage && window.localStorage.getItem('sp_music') === '0') A.musicOn = false;
   } catch (e) { }
-  A.musicVolume = 0.24;
+  A.musicVolume = 0.72;
   A._musicMode = '';
   A._pendingMusic = 'menu';
   A._musicGain = null;
@@ -12216,6 +12228,10 @@ body {
   };
 
   /* --------------------------------------------------------------- 发射 */
+  Game.prototype.isPlayerShip = function (ship) {
+    return !!ship && (ship === this.selected || (!this.selected && ship === this.blueMain));
+  };
+
   Game.prototype.maxChannels = function (ship) {
     var cells = (ship.def.armament.vls && ship.def.armament.vls.cells) || 16;
     return Math.max(2, Math.min(8, Math.round(cells / 8)));
@@ -12273,10 +12289,12 @@ body {
       });
     }
 
-    this.log(ship.pennant + ' 发射 ' + def.name + ' → ' + target.pennant, 'fire');
-    // 人声播报：我方发射必报；敌方发射只在其打我旗舰时报，避免刷屏
+    var playerShip = this.isPlayerShip(ship);
+    if (playerShip || ship.team !== 'blue') this.log(ship.pennant + ' 发射 ' + def.name + ' → ' + target.pennant, 'fire');
+    // 人声播报：只报玩家自己操纵的舰；友军 AI 的发射/命中不报，避免刷屏
     if (window.SW && SW.Audio && SW.Audio.radioTick) {
-      var speakThis = (ship.team === 'blue') || (target && target === this.blueMain);
+      var speakThis = (ship.team === 'blue' && playerShip) ||
+        (ship.team !== 'blue' && target && (target === this.blueMain || target === this.selected));
       if (speakThis) {
         SW.Audio.radioTick();
         if (ship.team === 'blue') SW.Audio.radio('导弹发射，' + (def.name || '反舰导弹'), { role: 'bridge' });
@@ -12404,15 +12422,15 @@ body {
       var air = airRange > 0 ? this.nearestAirTarget(s, airRange) : null;
       if (air && this.fireInterceptor(s, id, air, true)) {
         s._samT = def.role === 'pd' ? 2.2 : 2.6;
-        this.log(s.pennant + ' 舰空导弹拦截空中目标 —— ' + (air.name || '飞机'), 'fire');
-        if (s.team === 'blue' && window.SW && SW.Audio && SW.Audio.radio) {
+        if (s.team !== 'blue' || this.isPlayerShip(s)) this.log(s.pennant + ' 舰空导弹拦截空中目标 —— ' + (air.name || '飞机'), 'fire');
+        if (s.team === 'blue' && this.isPlayerShip(s) && window.SW && SW.Audio && SW.Audio.radio) {
           SW.Audio.radio('舰空导弹发射，拦截空中目标', { role: 'damage', gap: 900 });
         }
         continue;
       }
       if (best && this.fireInterceptor(s, id, best, true)) {
         s._samT = def.role === 'pd' ? 1.1 : 1.6;
-        this.log(s.pennant + ' 防空拦截 —— ' + (best.def ? best.def.name : '来袭弹'), 'fire');
+        if (s.team !== 'blue' || this.isPlayerShip(s)) this.log(s.pennant + ' 防空拦截 —— ' + (best.def ? best.def.name : '来袭弹'), 'fire');
         // 威胁逼近到一半射程内，补射第二发提高拦截率（有弹才打）
         if (bestD < reach * 0.55 && (s.ammo[id] || 0) >= 4) {
           var self2 = this;
@@ -12697,8 +12715,12 @@ body {
     this.log('命中 ' + ship.pennant + ' ' + zoneName + ' -' + Math.round(dmg), 'hit');
     if (ship.sinking) this.log(ship.pennant + ' 失去战斗力，正在沉没', 'kill');
     if (window.SW && SW.Audio && SW.Audio.radio) {
-      if (m && m.team === 'blue') SW.Audio.radio('命中敌舰，' + (zoneName || ''), { role: 'damage' });
-      else SW.Audio.radio('我舰中弹，' + (zoneName || ''), { role: 'damage', force: true });
+      if (m && m.team === 'blue') {
+        // 只有玩家自己操纵的舰打出的命中才报；友军 AI 的命中不抢频道
+        if (this.isPlayerShip(m.ownerShip)) SW.Audio.radio('命中敌舰，' + (zoneName || ''), { role: 'damage' });
+      } else if (ship === this.blueMain || ship === this.selected) {
+        SW.Audio.radio('我舰中弹，' + (zoneName || ''), { role: 'damage', force: true });
+      }
     }
     this.checkResult();
   };
@@ -12735,7 +12757,7 @@ body {
     this.interceptCount = (this.interceptCount || 0) + 1;
     this.lastIntercept = byShip && byShip.def ? byShip.def.typeName : '近防炮';
     this.log('来袭 ' + m.def.name + ' 被 ' + (this.lastIntercept) + ' 拦截', 'kill');
-    if (byShip && byShip.team === 'blue' && window.SW && SW.Audio && SW.Audio.radio) {
+    if (byShip && byShip.team === 'blue' && this.isPlayerShip(byShip) && window.SW && SW.Audio && SW.Audio.radio) {
       SW.Audio.radio('拦截成功', { role: 'damage', gap: 700 });
     }
   };
@@ -12798,8 +12820,8 @@ body {
       if (this.fx && this.fx.tracer) this.fx.tracer(s.pos, best.pos, 0xffe1a0);
       if (Math.random() < pk) {
         best.intercepted(s);
-        this.log(s.pennant + ' 近防炮拦截 ' + (best.def ? best.def.name : '来袭弹'), 'kill');
-        if (s.team === 'blue' && window.SW && SW.Audio && SW.Audio.radio) SW.Audio.radio('近防炮拦截成功', { role: 'damage', gap: 600 });
+        if (s.team !== 'blue' || this.isPlayerShip(s)) this.log(s.pennant + ' 近防炮拦截 ' + (best.def ? best.def.name : '来袭弹'), 'kill');
+        if (s.team === 'blue' && this.isPlayerShip(s) && window.SW && SW.Audio && SW.Audio.radio) SW.Audio.radio('近防炮拦截成功', { role: 'damage', gap: 600 });
       }
     }
   };
