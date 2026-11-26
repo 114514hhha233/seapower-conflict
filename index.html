@@ -2333,6 +2333,82 @@ body {
   .unit-sheet .hud-units { max-height: 52vh !important; }
 }
 
+/* v30 战术雷达：放大显示区，船只密集时改用小光点 */
+.hud-map { width: min(58vw, 340px) !important; }
+.hud-map canvas { width: min(44vh, 54vw, 300px) !important; height: auto !important; }
+@media (max-width: 900px), (pointer: coarse) {
+  .hud-map { width: min(62vw, 340px) !important; }
+  .hud-map canvas { width: min(44vh, 58vw, 300px) !important; }
+}
+@media (max-width: 480px) and (orientation: portrait) {
+  .hud-map { width: min(68vw, 300px) !important; }
+  .hud-map canvas { width: min(34vh, 62vw, 260px) !important; }
+}
+
+/* v31 雷达画布跟随面板尺寸，不留空边 */
+.hud-map canvas { width: 100% !important; height: auto !important; }
+
+/* v32 雷达尺寸由 HUD 按可用高度计算，保持正方形 */
+.hud-map { width: var(--radar-size, 240px) !important; height: var(--radar-size, 240px) !important; }
+
+/* ===== v33 时间倍速展开选择（避免逐档循环冲过头） ===== */
+.tspeed-menu {
+  position: fixed !important;
+  top: 52px !important;
+  right: 8px !important;
+  z-index: 72 !important;
+  width: 208px !important;
+  max-width: calc(100vw - 16px) !important;
+  padding: 9px 10px 10px !important;
+  background: rgba(5, 17, 25, .96) !important;
+  border: 1px solid rgba(95, 227, 255, .44) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .55) !important;
+  pointer-events: auto !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+.tspeed-menu.hidden { display: none !important; }
+.ts-head {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  margin-bottom: 7px !important;
+  color: #bfeeff !important;
+  font-size: 12px !important;
+  letter-spacing: 1px !important;
+}
+.ts-head i { font-style: normal !important; color: #6f95a6 !important; font-size: 10px !important; letter-spacing: 0 !important; }
+.ts-grid { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 6px !important; }
+.ts-grid button {
+  min-height: 38px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(95, 227, 255, .30) !important;
+  border-radius: 7px !important;
+  background: rgba(10, 31, 43, .9) !important;
+  color: #9fe9ff !important;
+  font: 600 15px/1 "Segoe UI", "Microsoft YaHei", sans-serif !important;
+  cursor: pointer !important;
+}
+.ts-grid button.on {
+  color: #101820 !important;
+  background: #ffd479 !important;
+  border-color: #ffd479 !important;
+}
+.ts-grid button:active { transform: scale(.96) !important; }
+
+/* ===== v34 任务简报教程 ===== */
+.mb-row.tut {
+  margin: 9px 0 10px;
+  padding: 8px 10px 7px;
+  background: rgba(255, 212, 121, .06);
+  border-left: 2px solid rgba(255, 212, 121, .72);
+  border-radius: 6px;
+}
+.mb-row.tut > b { color: #ffd479 !important; }
+.mb-row.tut ol { margin: 3px 0 0; padding-left: 17px; }
+.mb-row.tut li { margin: 4px 0; color: #d3e8f1; font-size: 12px; line-height: 1.55; }
+.mb-row.tut li i { font-style: normal; color: #ffd98a; font-weight: 600; }
+
 </style>
 </head>
 <body>
@@ -2943,6 +3019,200 @@ body {
     if (A.master) A.master.gain.value = A.enabled ? 0.86 : 0;
     if (A.enabled) A.unlock();
     if (!A.enabled && window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch (e) { } }
+  };
+
+  /* ---------------- 游戏内配乐：菜单 / 战斗 / 高威胁，全部 WebAudio 现场合成 ---------------- */
+  A.musicOn = true;
+  try {
+    if (window.localStorage && window.localStorage.getItem('sp_music') === '0') A.musicOn = false;
+  } catch (e) { }
+  A.musicVolume = 0.16;
+  A._musicMode = '';
+  A._pendingMusic = 'menu';
+  A._musicGain = null;
+  A._musicNodes = [];
+  A._musicTimer = null;
+  A._musicStep = 0;
+  A._musicAlertUntil = 0;
+
+  function musicBus() {
+    if (!A._musicGain) {
+      A._musicGain = A.ctx.createGain();
+      A._musicGain.gain.value = 0;
+      A._musicGain.connect(A.master);
+    }
+    return A._musicGain;
+  }
+
+  function mKeep(node) { A._musicNodes.push(node); return node; }
+
+  function mEnv(node, peak, atk, dec, t0) {
+    var g = A.ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(peak, t0 + atk);
+    g.gain.exponentialRampToValueAtTime(0.0006, t0 + atk + dec);
+    node.connect(g);
+    g.connect(musicBus());
+    return g;
+  }
+
+  function mKick(t0, vol, f0) {
+    var o = A.ctx.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(f0 || 118, t0);
+    o.frequency.exponentialRampToValueAtTime(38, t0 + 0.16);
+    mEnv(o, vol, 0.006, 0.22, t0);
+    o.start(t0); o.stop(t0 + 0.26);
+  }
+
+  function mSnare(t0, vol) {
+    var n = A.noise();
+    var hp = A.ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 1100;
+    n.connect(hp);
+    mEnv(hp, vol, 0.004, 0.16, t0);
+    n.start(t0); n.stop(t0 + 0.2);
+  }
+
+  function mBass(t0, freq, vol) {
+    var o = A.ctx.createOscillator();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(freq, t0);
+    mEnv(o, vol, 0.02, 0.42, t0);
+    o.start(t0); o.stop(t0 + 0.5);
+  }
+
+  function mPing(t0, freq, vol) {
+    var o = A.ctx.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(freq, t0);
+    o.frequency.exponentialRampToValueAtTime(freq * 0.62, t0 + 0.5);
+    mEnv(o, vol, 0.01, 0.9, t0);
+    o.start(t0); o.stop(t0 + 1.0);
+  }
+
+  function mPad(freqs, type, cutoff, vol) {
+    var g = A.ctx.createGain();
+    g.gain.value = vol;
+    var lp = A.ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = cutoff;
+    lp.Q.value = 0.6;
+    freqs.forEach(function (f, i) {
+      var o = A.ctx.createOscillator();
+      o.type = type;
+      o.frequency.value = f;
+      o.detune.value = i % 2 ? 4 : -3;
+      o.connect(lp);
+      o.start();
+      mKeep(o);
+    });
+    lp.connect(g);
+    g.connect(musicBus());
+  }
+
+  function mSea(vol) {
+    var n = A.noise();
+    n.loop = true;
+    var lp = A.ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 420;
+    var g = A.ctx.createGain();
+    g.gain.value = vol;
+    n.connect(lp); lp.connect(g); g.connect(musicBus());
+    n.start();
+    mKeep(n);
+  }
+
+  A._stopMusic = function () {
+    if (A._musicTimer) { clearInterval(A._musicTimer); A._musicTimer = null; }
+    A._musicNodes.forEach(function (n) {
+      try { if (n.stop) n.stop(); } catch (e) { }
+      try { if (n.disconnect) n.disconnect(); } catch (e) { }
+    });
+    A._musicNodes = [];
+    A._musicMode = '';
+    if (A._musicGain && A.ctx) {
+      var t = A.ctx.currentTime;
+      try {
+        A._musicGain.gain.cancelScheduledValues(t);
+        A._musicGain.gain.setValueAtTime(A._musicGain.gain.value, t);
+        A._musicGain.gain.linearRampToValueAtTime(0, t + 0.08);
+      } catch (e) { }
+    }
+  };
+
+  A.setMusic = function (mode, force) {
+    A._pendingMusic = mode || 'menu';
+    if (!A.musicOn) { A._stopMusic(); return; }
+    if (!A.init()) return;
+    if (!force && A._musicMode === mode) return;
+    A._stopMusic();
+    if (!mode || mode === 'off') return;
+    A._musicMode = mode;
+    A._musicStep = 0;
+    var bus = musicBus();
+    var t0 = A.ctx.currentTime;
+    try {
+      bus.gain.cancelScheduledValues(t0);
+      bus.gain.setValueAtTime(0.0001, t0);
+      bus.gain.linearRampToValueAtTime(A.musicVolume, t0 + 0.5);
+    } catch (e) { }
+    if (mode === 'menu') {
+      mPad([55, 82.5, 110], 'sine', 240, 0.038);
+      mSea(0.012);
+    } else if (mode === 'battle') {
+      mPad([55, 110, 164.81], 'sawtooth', 300, 0.032);
+      mPad([82.41], 'triangle', 180, 0.025);
+    } else if (mode === 'alert') {
+      mPad([73.42, 146.83], 'square', 520, 0.030);
+    }
+    var stepMs = mode === 'menu' ? 280 : (mode === 'battle' ? 150 : 112);
+    A._musicTimer = setInterval(A._musicTick, stepMs);
+    A._musicTick();
+  };
+
+  A._musicTick = function () {
+    if (!A.ready() || !A.musicOn || !A._musicMode) return;
+    var t0 = A.ctx.currentTime + 0.02;
+    var s = A._musicStep++;
+    if (A._musicMode === 'menu') {
+      if (s % 8 === 0) mKick(t0, 0.030, 92);
+      if (s % 32 === 0) mPing(t0, 740, 0.018);
+      if (s % 64 === 32) mSnare(t0, 0.008);
+    } else if (A._musicMode === 'battle') {
+      if (s % 4 === 0) mKick(t0, 0.048, 112);
+      if (s % 8 === 4) mSnare(t0, 0.022);
+      if (s % 16 === 0) mBass(t0, s % 32 === 0 ? 55 : 49, 0.032);
+      if (s % 8 === 0) mPing(t0, 320, 0.010);
+    } else if (A._musicMode === 'alert') {
+      if (s % 2 === 0) mKick(t0, 0.040, 124);
+      if (s % 4 === 2) mSnare(t0, 0.024);
+      if (s % 8 === 0) mBass(t0, 73.42, 0.030);
+      if (s % 8 === 4) mPing(t0, 880, 0.014);
+    }
+  };
+
+  A.stinger = function (kind) {
+    if (!A.musicOn || !A.ready()) return;
+    var t0 = A.ctx.currentTime + 0.05;
+    var sg = A.ctx.createGain();
+    sg.gain.value = 0.55;
+    sg.connect(A.master);
+    var notes = kind === 'win' ? [523.25, 659.25, 783.99, 1046.5] : [220, 174.61, 130.81];
+    notes.forEach(function (f, i) {
+      var o = A.ctx.createOscillator();
+      var g = A.ctx.createGain();
+      o.type = kind === 'win' ? 'triangle' : 'sine';
+      o.frequency.value = f;
+      var at = t0 + i * (kind === 'win' ? 0.22 : 0.45);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.linearRampToValueAtTime(0.14, at + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0005, at + 0.7);
+      o.connect(g); g.connect(sg);
+      o.start(at); o.stop(at + 0.8);
+    });
   };
 
   /* ---------------- 新增：导弹掠空 / 命中碎响 / 沉没闷响 / 来袭警报 ---------------- */
@@ -4075,6 +4345,11 @@ body {
         brief: '埃及导弹艇在雷达距离外齐射 SS-N-2“冥河”，以色列驱逐舰埃拉特号被击中沉没。' +
           '这是海战史上第一次用反舰导弹击沉军舰——从此“看得远比打得远”成了海军第一课。',
         learn: '教程关：先开雷达建立接触，再在导弹射程内先敌开火；舰炮射程内的贴身缠斗只会挨打。',
+        tutorial: [
+          '认雷达图：中心白点是你，四道圈把当前量程四等分；红点是敌方接触，白点是友方，圈外的目标会在边缘显示方位箭头。',
+          '锁定再打：点雷达上的红点，目标出现锁定框；目标进入导弹射程圈后，再点“发射”。没锁定不要齐射。',
+          '量程先小后大：默认 60 km 看清身边目标；远处预警机或大编队出现时，点“量程”切到 120/240 km。'
+        ],
         forces: {
           blue: { name: '埃及海军', tag: 'EG', ships: [{ type: 'osa205', n: 2, name: '蚊子级导弹艇', pennant: 'HS', gap: 1800 }] },
           red: { name: '以色列海军', tag: 'IL', ships: [{ type: 'zclass', n: 1, name: '埃拉特号', pennant: 'E-1' }] }
@@ -4089,6 +4364,11 @@ body {
         brief: '以色列萨尔级与叙利亚蚊子级、黄蜂级在 40 km 内互相齐射，双方都用冥河与加布里埃尔。' +
           '小艇群战第一次证明：谁先转向脱离，谁就先被锁定。',
         learn: '教程关：导弹艇群对冲时保持编队间距，别把三条艇挤在一条航线上。',
+        tutorial: [
+          '多目标：雷达上同时出现多个红点时，先点最近、威胁最大的一个锁定，打完再换下一个，不要一口气把弹全扔出去。',
+          '编队间距：三艘艇不要走同一条直线；用小舵角左右错开，避免一枚导弹穿糖葫芦。',
+          '看接触列表：右侧“目标”栏会按距离排接触，点条目也能锁定，比在雷达上点小光点更稳。'
+        ],
         forces: {
           blue: { name: '以色列海军', tag: 'IL', ships: [{ type: 'osa205', n: 3, name: '萨尔级导弹艇', pennant: 'SA', gap: 1500 }] },
           red: { name: '叙利亚海军', tag: 'SY', ships: [{ type: 'osa205', n: 3, name: '蚊子级导弹艇', pennant: 'HS', gap: 1500 }] }
@@ -4103,6 +4383,11 @@ body {
         brief: '阿根廷超军旗攻击机在 30 km 外发射 AM-39“飞鱼”，导弹掠海 2 m 突防，' +
           '英国 42 型驱逐舰谢菲尔德号的铝合金上层建筑被引燃。',
         learn: '教程关：掠海弹的探测窗口只有几十秒——把近防炮和防空导弹的射界留出来。',
+        tutorial: [
+          '看来袭告警：屏幕上方“空情”变成“来袭”，雷达上出现快速逼近的小弹标，同时会有警报音和播报。',
+          '分层拦截：舰空导弹先打 20–45 km 的目标，近防炮负责最后几公里；不要等弹贴脸才开火。',
+          '别关雷达：掠海弹靠雷达发现，雷达静默时你只能靠预警机；本关保持雷达开机。'
+        ],
         forces: {
           blue: { name: '英国特混舰队', tag: 'UK', ships: [{ type: 'type42', n: 1, name: '谢菲尔德号', pennant: 'D80' }, { type: 'perry_ffg', n: 1, name: '英方护卫舰', pennant: 'F90', gap: 5000 }] },
           red: { name: '阿根廷航空兵', tag: 'AR', ships: [{ type: 'perry_ffg', n: 2, name: '飞鱼发射阵位', pennant: 'AR', gap: 9000 }] }
@@ -4117,6 +4402,11 @@ body {
         brief: '英国核潜艇在 200 km 外抢占阵位，用二战老式鱼雷击沉阿根廷巡洋舰贝尔格拉诺将军号。' +
           '水面舰在开阔海域没有反潜掩护，就是活靶。',
         learn: '中距对抗：先拉开距离争取预警时间，再用远程反舰弹压制对方前出阵位。',
+        tutorial: [
+          '切量程：本关接触可能在 60 km 外，点“量程”切到 120/240 km；边缘箭头只告诉你方位，不显示距离。',
+          '用预警机：按“预警机 A”派出预警机，它能把远处接触的距离和航向拉回来，但也会暴露你的位置。',
+          '远程弹先手：看雷达上的导弹射程圈，目标进圈就发射；不要等对方先打第一轮。'
+        ],
         forces: {
           blue: { name: '英国特混舰队', tag: 'UK', ships: [{ type: 'type42', n: 1, name: '英方护卫舰', pennant: 'D88' }, { type: 'perry_ffg', n: 1, name: '英方护卫舰', pennant: 'F90', gap: 6000 }] },
           red: { name: '阿根廷海军', tag: 'AR', ships: [{ type: 'perry_ffg', n: 1, name: '贝尔格拉诺将军号', pennant: 'C4' }, { type: 'osa205', n: 2, name: '导弹艇', pennant: 'AR', gap: 2600 }] }
@@ -4131,6 +4421,11 @@ body {
         brief: '美军对伊朗海上平台的报复行动演变成整日海战：导弹艇、护卫舰、反舰导弹在 ' +
           '80 km 的狭窄水域里互相倾泻，双方都吃过“友军识别”的亏。',
         learn: '要点：狭窄水域里雷达接触多，别把第一枚导弹打给最远的那个目标。',
+        tutorial: [
+          '接触多：本关红点会密集出现，雷达会自动收成小光点；先看“目标”列表里的距离，再决定打谁。',
+          '先近后远：优先打已经进入你导弹射程、且航向直冲你的艇；最远的那艘可以留到第二轮。',
+          '留一轮弹：齐射会一次打光多发，狭窄水域里至少留 1–2 发应对突然从侧翼冒出来的目标。'
+        ],
         forces: {
           blue: { name: '美国海军', tag: 'US', ships: [{ type: 'perry_ffg', n: 2, name: '佩里级护卫舰', pennant: 'FFG', gap: 5000 }] },
           red: { name: '伊朗海军', tag: 'IR', ships: [{ type: 'osa205', n: 4, name: '导弹艇', pennant: 'IR', gap: 1600 }] }
@@ -4145,6 +4440,11 @@ body {
         brief: '多国部队的宙斯盾巡洋舰与驱逐舰在油轮航道上建立封锁线，伊拉克导弹艇试图夜袭。' +
           '这是“宙斯盾＋垂发”第一次在实战里拦下反舰导弹。',
         learn: '要点：相控阵＋垂发让你能同时跟踪多目标；先用防空弹织网，再打反舰弹。',
+        tutorial: [
+          '垂发多目标：伯克级能同时跟踪多批目标；雷达上出现多个红点时，导弹会按锁定顺序分配，不要频繁改锁。',
+          '先防空后反舰：空情栏出现“来袭”先处理空中目标，再按“发射”打对方水面艇；防空弹和反舰弹不是同一个按钮。',
+          '看火控通道：同时制导的目标数有限，齐射太多会出现“通道占用”，分两轮打更稳。'
+        ],
         forces: {
           blue: { name: '多国部队', tag: 'US', ships: [{ type: 'balanced_destroyer', n: 1, name: '伯克级驱逐舰', pennant: 'DDG' }] },
           red: { name: '伊拉克海军', tag: 'IQ', ships: [{ type: 'osa205', n: 4, name: '导弹艇', pennant: 'IQ', gap: 1700 }, { type: 'type42', n: 1, name: '巡逻护卫舰', pennant: 'IQ', gap: 8000 }] }
@@ -4159,6 +4459,11 @@ body {
         brief: '油轮连续遇袭，护航编队在 30 km 宽的水道里与快艇群、岸舰导弹周旋。' +
           '狭窄水域里，“谁先暴露谁先死”。',
         learn: '要点：小艇目标 RCS 小，探测距离缩短；靠预警机把接触距离拉回来。',
+        tutorial: [
+          '小艇难看见：快艇雷达反射面积小，60 km 量程下可能到 20–30 km 才冒出来；别以为雷达坏了。',
+          '预警机前出：按“预警机 A”让预警机前出扫描，它能在更远距离发现小艇，但会被对方防空盯上。',
+          '狭窄水道：目标可能从左右两侧同时出现，雷达边缘箭头变多时，先把视角转向箭头方向再锁定。'
+        ],
         forces: {
           blue: { name: '护航编队', tag: 'CN', ships: [{ type: 'medium_destroyer', n: 1, name: '052D 驱逐舰', pennant: '172' }] },
           red: { name: '岸基突击群', tag: 'IR', ships: [{ type: 'osa205', n: 4, name: '快艇群', pennant: 'IR', gap: 1200 }, { type: 'light_frigate', n: 1, name: '轻型护卫舰', pennant: 'IR', gap: 7000 }] }
@@ -4173,6 +4478,11 @@ body {
         brief: '055 与伯克 Flight III 在 80 km 外互相锁定：一边是 112 单元垂发＋鹰击-18，' +
           '一边是 96 单元＋LRASM。这是一场“谁先被定位”的仗。',
         learn: '要点：双方探测距离接近，先开雷达的一方先暴露；用预警机换取发射窗口。',
+        tutorial: [
+          '雷达开机=暴露：双方探测距离接近，先开雷达的一方会先被对方发现；可以短时静默，靠预警机接触。',
+          '预警机换窗口：派预警机前出，用它的接触数据装表；预警机被击落前，尽量把第一轮弹打出去。',
+          '看射程圈：鹰击-18 的射程圈到 80 km 左右，目标进圈再打；远出圈外发射只会提前暴露。'
+        ],
         forces: {
           blue: { name: '中国海军编队', tag: 'CN', ships: [{ type: 'heavy_destroyer', n: 1, name: '055 型驱逐舰', pennant: '101' }, { type: 'medium_frigate', n: 1, name: '054A 护卫舰', pennant: '547', gap: 7000 }] },
           red: { name: '美国海军编队', tag: 'US', ships: [{ type: 'balanced_destroyer', n: 1, name: '伯克级驱逐舰', pennant: 'DDG' }, { type: 'aa_cruiser', n: 1, name: '提康德罗加级巡洋舰', pennant: 'CG', gap: 8000 }] }
@@ -4187,6 +4497,11 @@ body {
         brief: '两个航母战斗群在 90 km 外互相搜索。水面舰只是盾，真正决定胜负的是' +
           '谁先把对方的航母定位。',
         learn: '要点：航母编队靠舰载机与预警机延伸探测；把护航舰摆在威胁轴上。',
+        tutorial: [
+          '先找航母：航母是最大的红点，但周围有护航舰；点“视角”展开单位列表，可以直接跟住航母。',
+          '先打盾再打核心：远程反舰弹优先照顾护航舰，把防空圈撕开；不要第一轮就把全部弹打给航母。',
+          '摆护航阵位：把 055 摆在航母的威胁轴上（敌方位方向），不要全部挤在航母正后方。'
+        ],
         forces: {
           blue: { name: '蓝方航母战斗群', tag: 'CN', ships: [{ type: 'carrier', n: 1, name: '航母', pennant: '16' }, { type: 'heavy_destroyer', n: 2, name: '055 型驱逐舰', pennant: '102', gap: 9000 }] },
           red: { name: '红方水面突击群', tag: 'RU', ships: [{ type: 'heavy_cruiser', n: 1, name: '基洛夫级巡洋舰', pennant: '099' }, { type: 'aa_cruiser', n: 1, name: '提康德罗加级巡洋舰', pennant: 'CG', gap: 8000 }] }
@@ -4201,6 +4516,11 @@ body {
         brief: '十余艘无人/半无人导弹艇用 40 节高速从多个方位同时压上，用数量换饱和。' +
           '防守方只有一次机会把火控通道分完。',
         learn: '要点：多目标饱和攻击下，火控通道（同时制导数）比弹药数量更关键。',
+        tutorial: [
+          '数清目标：无人艇会从多个方位同时压上，雷达上红点数量超过 8 批时会自动变小光点，先看“目标”列表总数。',
+          '分火控通道：同时制导的目标数有限，不要一口气齐射 5 艘；分成 2–3 轮，每轮锁定最近的 2 艘。',
+          '优先打母舰：集群母舰在后方 12 km，打掉它能让前方无人艇失去协同；但先确认自己的防空弹够用。'
+        ],
         forces: {
           blue: { name: '守方编队', tag: 'CN', ships: [{ type: 'medium_destroyer', n: 1, name: '052D 驱逐舰', pennant: '172' }, { type: 'light_frigate', n: 2, name: '056A 护卫舰', pennant: '501', gap: 5000 }] },
           red: { name: '无人艇集群', tag: 'UX', ships: [{ type: 'light_frigate', n: 5, name: '无人导弹艇', pennant: 'UX', gap: 1400 }, { type: 'medium_frigate', n: 1, name: '集群母舰', pennant: 'UX', gap: 12000 }] }
@@ -8129,7 +8449,7 @@ body {
     this.h = 262;
     this.canvas.width = Math.round(this.w * this.dpr);
     this.canvas.height = Math.round(this.h * this.dpr);
-    this.rangeIdx = 2;          // 默认 240km（300 km 战场要先看得见远处的 AEW 接触）
+    this.rangeIdx = 0;          // 默认 60 km：手机上先看清本舰周围的目标，远距接触用边缘箭头提示
     this.deployMode = false;
     this.power = true;          // 雷达开机 / 静默
     this.mode = 'search';       // search 搜索 / track 跟踪（锁定目标精显）
@@ -8523,6 +8843,12 @@ body {
     /* ---- 接触：水面舰 ---- */
     this.visible = [];
     var contacts = 0, nearest = null;
+    var contactTotal = 0, ci;
+    for (ci = 0; ci < g.ships.length; ci++) {
+      var cs = g.ships[ci];
+      if (cs.alive && !cs.sinking && (cs.team === 'blue' || cs.detected)) contactTotal++;
+    }
+    var dense = contactTotal >= 8;   // 目标多时改用小光点，先分清数量再看航向
     var focus = g.cam.follow || g.selected || ref;
     for (var i2 = 0; i2 < g.ships.length; i2++) {
       var sh = g.ships[i2];
@@ -8561,15 +8887,33 @@ body {
 
       // 舰艇符号（尖端=航向）+ 速度矢量
       var shCol = isRed ? '#ff6a45' : '#63d8ff';
-      this.symShip(ctx, px2, py2, sh.heading, shCol, isRed ? false : true, 1);
-      this.symVector(ctx, px2, py2, sh.heading, Math.min(24, 7 + sh.speed * 0.72),
-        isRed ? 'rgba(255,120,80,0.7)' : 'rgba(110,225,255,0.7)', 1.2);
+      if (dense) {
+        // 密集接触：只画 2px 光点 + 短航向线，避免图标互相盖住
+        ctx.fillStyle = shCol;
+        ctx.beginPath();
+        ctx.arc(px2, py2, 2.0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = shCol;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(px2, py2);
+        ctx.lineTo(px2 + Math.sin(sh.heading) * 6, py2 - Math.cos(sh.heading) * 6);
+        ctx.stroke();
+      } else {
+        this.symShip(ctx, px2, py2, sh.heading, shCol, isRed ? false : true, 0.68);
+        this.symVector(ctx, px2, py2, sh.heading, Math.min(17, 6 + sh.speed * 0.45),
+          isRed ? 'rgba(255,120,80,0.7)' : 'rgba(110,225,255,0.7)', 1.0);
+      }
 
-      if (sh === focus) this.symFocus(ctx, px2, py2, 7);
+      if (sh === focus) this.symFocus(ctx, px2, py2, dense ? 5 : 6);
 
-      // 标签：批号 + 距离 + 航速
-      this.label(ctx, (isRed ? 'T' : 'B') + (sh.pennant || '-') + '  ' + Math.round(dist / 1000) + 'km  ' + Math.round(sh.speed) + 'kn' + (this._dlOnly ? '  DL' : ''),
-        px2 + 9, py2 - 5, isRed ? '#ff9a7d' : '#9ce9ff');
+      // 标签：目标多时只给当前关注/锁定舰标注，其余只留光点
+      if (!dense || sh === focus || sh === g.targetShip) {
+        var lbl = dense
+          ? (isRed ? 'T' : 'B') + (sh.pennant || '-') + ' ' + Math.round(dist / 1000) + 'km'
+          : (isRed ? 'T' : 'B') + (sh.pennant || '-') + '  ' + Math.round(dist / 1000) + 'km  ' + Math.round(sh.speed) + 'kn' + (this._dlOnly ? '  DL' : '');
+        this.label(ctx, lbl, px2 + 8, py2 - 4, isRed ? '#ff9a7d' : '#9ce9ff', 'left', '8px "Courier New", monospace');
+      }
 
       if (sh === g.targetShip) {
         ctx.strokeStyle = '#ffd166';
@@ -8643,11 +8987,12 @@ body {
       this.symMsl(ctx, mx, my, hdgM, solidM);
       if (ms === focus) this.symFocus(ctx, mx, my, 6);
 
-      // 标签：型号 + 速度 + 高度
+      // 标签：敌我 + 弹种 + 型号 + 速度 + 高度（和飞机的 AEW 标识同一套读法）
       ctx.fillStyle = 'rgba(' + colM + ',0.92)';
       ctx.font = '8.5px "Courier New", monospace';
       ctx.textAlign = 'left';
-      this.label(ctx, (ms.def && ms.def.name ? ms.def.name : 'MSL') + ' ' +
+      this.label(ctx, (ms.team === 'red' ? 'T-' : 'B-') + this.mslCode(ms.def) + ' ' +
+        (ms.def && ms.def.name ? ms.def.name : 'MSL') + ' ' +
         Math.round(ms.speed) + 'm/s H' + Math.round(ms.pos.y) + 'm', mx + 9, my + 14,
         'rgba(' + colM + ',0.95)');
     }
@@ -8756,6 +9101,15 @@ body {
     ctx.lineWidth = 0.8;
     ctx.stroke();
     ctx.restore();
+  };
+
+  Radar.prototype.mslCode = function (def) {
+    var role = def && def.role;
+    if (role === 'as' || role === 'asm') return 'ASM';
+    if (role === 'aa' || role === 'sam') return 'SAM';
+    if (role === 'pd') return 'PD';
+    if (role === 'ciws') return 'CIWS';
+    return 'MSL';
   };
 
   /* 航向矢量：长度随速度（kn / m·s-1）变化，带箭头尖，明确看出指向 */
@@ -9452,6 +9806,7 @@ body {
       '  <button class="top-audio" id="top-audio" title="音效开关">♪</button>',
       '  <div class="hud-clock"><span id="clock">00:00</span><em id="tspeed">×1</em></div>',
       '</header>',
+      '<div class="tspeed-menu hidden" id="tspeed-menu"></div>',
       '<div class="hud-threat" id="threat-bar"><span class="th-arrow" id="th-arrow">▲</span><em>敌情</em><b id="threat-text">—</b></div>',
 
       '<aside class="hud-intel" id="panel-intel">',
@@ -9460,7 +9815,7 @@ body {
       '</aside>',
 
       '<div class="hud-map" id="panel-map">',
-      '  <div class="rd-head"><span>战术雷达</span><i id="rd-zoom">×1.0</i><em id="rd-range">120 KM</em><button class="fold" data-fold="map">－</button></div>',
+      '  <div class="rd-head"><span>战术雷达</span><i id="rd-zoom">×1.0</i><em id="rd-range">60 KM</em><button class="fold" data-fold="map">－</button></div>',
       '  <div class="rd-wrap">',
       '    <canvas id="mm" width="252" height="252"></canvas>',
       '    <div class="rd-foot" id="rd-info">扫描中</div>',
@@ -9498,20 +9853,47 @@ body {
     this.objText = root.querySelector('#obj-text');
     this.clockEl = root.querySelector('#clock');
     this.tSpeedEl = root.querySelector('#tspeed');
-    // 点时间倍率循环：×1 → ×2 → ×3 → ×6 → ×1（手机没法按键盘，给个可点的入口）
-    if (this.tSpeedEl) {
+    this.tSpeedMenu = root.querySelector('#tspeed-menu');
+    // 点时间倍率展开候选列表，直接选目标倍速；不再一档一档循环，避免想选 4× 却先冲过 20×
+    if (this.tSpeedEl && this.tSpeedMenu) {
       var selfTs = this;
+      var SPEEDS = [1, 2, 4, 8, 12, 16, 20];
+      var applySpeed = function (v) {
+        var g2 = selfTs.game;
+        g2.timeScale = v;
+        if (g2.paused) g2.paused = false;
+        selfTs.tSpeedEl.textContent = '×' + v;
+        if (selfTs.log) selfTs.log('时间加速 ×' + v, 'hint');
+      };
+      var renderSpeedMenu = function () {
+        var g2 = selfTs.game;
+        var html = '<div class="ts-head">时间倍速<i>点击选择</i></div><div class="ts-grid">';
+        for (var si = 0; si < SPEEDS.length; si++) {
+          html += '<button data-speed="' + SPEEDS[si] + '"' + (g2.timeScale === SPEEDS[si] ? ' class="on"' : '') + '>×' + SPEEDS[si] + '</button>';
+        }
+        html += '</div>';
+        selfTs.tSpeedMenu.innerHTML = html;
+        selfTs.tSpeedMenu.querySelectorAll('button[data-speed]').forEach(function (b) {
+          b.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            applySpeed(parseFloat(b.getAttribute('data-speed')));
+            selfTs.tSpeedMenu.classList.add('hidden');
+          });
+        });
+      };
       this.tSpeedEl.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        var g2 = selfTs.game;
-        var seq = [1, 2, 4, 8, 12, 16, 20];
-        var idx2 = seq.indexOf(g2.timeScale);
-        g2.timeScale = seq[(idx2 + 1) % seq.length];
-        if (g2.paused) g2.paused = false;
-        selfTs.tSpeedEl.textContent = '×' + g2.timeScale;
-        if (selfTs.log) selfTs.log('时间加速 ×' + g2.timeScale, 'hint');
+        var willOpen = selfTs.tSpeedMenu.classList.contains('hidden');
+        if (willOpen) renderSpeedMenu();
+        selfTs.tSpeedMenu.classList.toggle('hidden', !willOpen);
       });
+      document.addEventListener('pointerdown', function (e) {
+        if (selfTs.tSpeedMenu.classList.contains('hidden')) return;
+        if (e.target === selfTs.tSpeedEl || selfTs.tSpeedMenu.contains(e.target)) return;
+        selfTs.tSpeedMenu.classList.add('hidden');
+      }, true);
     }
     this.intelList = root.querySelector('#intel-list');
     this.panel = root.querySelector('#ship-panel');
@@ -9618,7 +10000,8 @@ body {
     var opsTop = opsEl ? opsEl.getBoundingClientRect().top : vh - 160;
     if (!(opsTop > topY + 60)) opsTop = vh - 160;
     var avail = opsTop - topY - 4;                    // 竖直可用高度
-    var size = Math.max(120, Math.min(avail, vw * 0.30, 210));
+    var size = Math.max(120, Math.min(avail, vw * 0.42, 240));
+    map.style.setProperty('--radar-size', size + 'px');
     map.style.setProperty('width', size + 'px', 'important');
     map.style.setProperty('height', size + 'px', 'important');
     map.style.setProperty('min-width', '0', 'important');
@@ -10368,6 +10751,21 @@ body {
       if (!ac.alive) continue;
       this.drawOne(ctx, cam, ac, ac.pos, 'air', w, h, cx, cy, hw, hh, ref, v);
     }
+    // 导弹也画一个带型号的标记：和飞机的 AEW 一样能一眼看出“这是什么、哪一方的”
+    for (var mi = 0; mi < g.missiles.length; mi++) {
+      var mm = g.missiles[mi];
+      if (!mm.alive || !mm.pos) continue;
+      this.drawOne(ctx, cam, mm, mm.pos, 'msl', w, h, cx, cy, hw, hh, ref, v);
+    }
+  };
+
+  HUD.prototype.mslCode = function (def) {
+    var role = def && def.role;
+    if (role === 'as' || role === 'asm') return 'ASM';
+    if (role === 'aa' || role === 'sam') return 'SAM';
+    if (role === 'pd') return 'PD';
+    if (role === 'ciws') return 'CIWS';
+    return 'MSL';
   };
 
   HUD.prototype.drawOne = function (ctx, cam, o, pos, kind, w, h, cx, cy, hw, hh, ref, v) {
@@ -10375,7 +10773,7 @@ body {
     var dToCam = cam.position.distanceTo(pos);
     if (dToCam > 300000) return;
 
-    v.set(pos.x, pos.y + (kind === 'air' ? 0 : (o.def && o.def.hull ? o.def.hull.freeboard : 4) + 8), pos.z);
+    v.set(pos.x, pos.y + (kind === 'air' ? 0 : (kind === 'msl' ? 0 : (o.def && o.def.hull ? o.def.hull.freeboard : 4) + 8)), pos.z);
     v.project(cam);
     var behind = v.z > 1;
     var sx = w - (v.x + 1) * 0.5 * w;   // 3D 画布左右镜像，标记同步翻转
@@ -10383,13 +10781,16 @@ body {
     if (behind) { sx = cx - (sx - cx); sy = cy - (sy - cy); }
 
     // 近景里舰体已经看得很清楚，不再加标记（但离屏时仍要画箭头）
-    var isRed = kind === 'ship' && o.team === 'red';
-    var isSelf = kind === 'ship' && o.team !== 'red';
+    var isRed = o.team === 'red';
+    var isSelf = kind === 'ship' && !isRed;
 
     var txt, col, locked = (kind === 'ship' && g.targetShip === o);
     if (kind === 'air') {
       txt = (o.team === 'blue' ? 'AEW' : 'AEW-R');
       col = '#a9ecff';
+    } else if (kind === 'msl') {
+      txt = (isRed ? 'T-' : 'B-') + this.mslCode(o.def) + ' ' + ((o.def && o.def.name) || 'MSL');
+      col = isRed ? '#ff9a7d' : '#9ce9ff';
     } else if (isRed) {
       txt = 'T' + (o.pennant || '--') + ' ' + Math.round(U.distXZ(ref.pos, pos) / 1000) + 'km';
       col = locked ? '#ffd166' : '#ff9170';
@@ -10408,8 +10809,24 @@ body {
       ctx.strokeStyle = col;
       ctx.fillStyle = col;
       ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.arc(sx, sy, locked ? 8 : 5.5, 0, Math.PI * 2); ctx.stroke();
-      if (locked) { ctx.beginPath(); ctx.arc(sx, sy, 13, 0, Math.PI * 2); ctx.stroke(); }
+      if (kind === 'msl') {
+        // 导弹用菱形弹标，和舰艇圆标、飞机圆标分开；颜色区分红蓝方
+        ctx.beginPath();
+        ctx.moveTo(sx, sy - 8);
+        ctx.lineTo(sx + 5, sy - 2);
+        ctx.lineTo(sx + 3, sy + 5);
+        ctx.lineTo(sx, sy + 2);
+        ctx.lineTo(sx - 3, sy + 5);
+        ctx.lineTo(sx - 5, sy - 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(8,20,28,0.9)';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      } else {
+        ctx.beginPath(); ctx.arc(sx, sy, locked ? 8 : 5.5, 0, Math.PI * 2); ctx.stroke();
+        if (locked) { ctx.beginPath(); ctx.arc(sx, sy, 13, 0, Math.PI * 2); ctx.stroke(); }
+      }
       ctx.beginPath();
       ctx.moveTo(sx - 16, sy); ctx.lineTo(sx - 9, sy);
       ctx.moveTo(sx + 9, sy); ctx.lineTo(sx + 16, sy);
@@ -10783,6 +11200,7 @@ body {
       '    <button class="mn-btn" data-go="ships"><span class="mn-ico"><svg viewBox="0 0 24 24"><path d="M3 15h18l-3 5H6z"/><path d="M7 15V9h10v6"/><path d="M11 9V5h2v4"/></svg></span><b>舰 船 图 鉴</b><i>FLEET GALLERY</i></button>',
       '    <button class="mn-btn" data-go="missiles"><span class="mn-ico"><svg viewBox="0 0 24 24"><path d="M12 3l3 8v7l-3 3-3-3v-7z"/><path d="M9 14l-3 3M15 14l3 3"/></svg></span><b>导 弹 图 鉴</b><i>MISSILE GALLERY</i></button>',
       '    <div class="mn-tools">',
+      '      <button class="mn-mini" id="mn-music">配乐 开</button>',
       '      <button class="mn-mini" id="mn-sfx">音效 开</button>',
       '      <button class="mn-mini" id="mn-voice">人声 开</button>',
       '      <button class="mn-mini" id="mn-tone">音色</button>',
@@ -10853,17 +11271,19 @@ body {
         self.close();
       });
     }
-    var sfx = root.querySelector('#mn-sfx'), voice = root.querySelector('#mn-voice'), tone = root.querySelector('#mn-tone');
+    var sfx = root.querySelector('#mn-sfx'), voice = root.querySelector('#mn-voice'), tone = root.querySelector('#mn-tone'), music = root.querySelector('#mn-music');
     function syncToggles() {
       var a = window.SW && SW.Audio;
       if (sfx) sfx.textContent = '音效 ' + (a && a.enabled ? '开' : '关');
       if (voice) voice.textContent = '人声 ' + (a && a.voiceOn ? '开' : '关');
+      if (music) music.textContent = '配乐 ' + (a && a.musicOn ? '开' : '关');
       if (tone && a && a.voiceName) {
         var nm = a.voiceName();
         tone.textContent = '音色 ' + (nm.length > 6 ? nm.slice(0, 6) : nm);
       }
       if (sfx) sfx.classList.toggle('off', !(a && a.enabled));
       if (voice) voice.classList.toggle('off', !(a && a.voiceOn));
+      if (music) music.classList.toggle('off', !(a && a.musicOn));
     }
     this._syncToggles = syncToggles;
     if (tone) tone.addEventListener('click', function () {
@@ -10876,6 +11296,18 @@ body {
       if (!window.SW || !SW.Audio) return;
       var on = !SW.Audio.enabled;
       SW.Audio.setEnabled(on);
+      syncToggles();
+    });
+    if (music) music.addEventListener('click', function () {
+      if (!window.SW || !SW.Audio) return;
+      var a = SW.Audio;
+      a.musicOn = !a.musicOn;
+      try { if (window.localStorage) window.localStorage.setItem('sp_music', a.musicOn ? '1' : '0'); } catch (e) { }
+      if (!a.musicOn) {
+        a.setMusic('off');
+      } else {
+        a.setMusic((self.game && self.game.battle && !self.game.result) ? 'battle' : 'menu', true);
+      }
       syncToggles();
     });
     if (voice) voice.addEventListener('click', function () {
@@ -10976,6 +11408,7 @@ body {
 
   Menu.prototype.open = function (mode) {
     if (this.game) this.game.paused = true;
+    if (window.SW && SW.Audio) SW.Audio.setMusic('menu');
     this.stampNav();
     this.root.style.display = '';
     this.root.classList.remove('hidden');
@@ -10991,6 +11424,9 @@ body {
     this.stopLoop();
     if (this.game) this.game.paused = false;
     this.mode = 'home';
+    if (window.SW && SW.Audio) {
+      SW.Audio.setMusic((this.game && this.game.battle && !this.game.result) ? 'battle' : 'menu');
+    }
   };
 
   Menu.prototype.enterHome = function () {
@@ -11066,6 +11502,30 @@ body {
   };
 
   /* ---------------------------------------------------- 战役任务简报（开战前） */
+  function skirmishTips(n) {
+    var a = [
+      '认雷达图：中心白点是你，四道圈把当前量程四等分；红点是敌方，圈外目标用边缘箭头提示方位。',
+      '锁定再打：点雷达红点或目标列表锁定，目标进入导弹射程圈后再按“发射”。',
+      '量程先小后大：默认 60 km 看清身边；接触跑到圈外时切 120/240 km。'
+    ];
+    if (n <= 1) return a;
+    if (n <= 3) return [
+      a[0],
+      '多目标：红点不止一个时，先锁定最近、航向直冲你的那艘；打完再换目标，不要一次把弹打光。',
+      a[2]
+    ];
+    if (n <= 5) return [
+      '小艇密集：红点超过 8 批时雷达会自动变小光点，先看目标列表的距离和数量。',
+      '分层拦截：空情出现“来袭”时，舰空导弹先打远的，近防炮管最后几公里。',
+      '留一轮弹：齐射别一次打空，狭窄水域里侧翼随时会冒出第二批目标。'
+    ];
+    return [
+      '远程接触：本关目标可能在 60 km 外，切到 120/240 km 量程，或派预警机前出。',
+      '火控通道：同时制导目标数有限，分 2–3 轮打，每轮锁定 1–2 艘。',
+      '先打盾：编队里有护航舰时，先拆防空圈，再打航母/核心舰。'
+    ];
+  }
+
   Menu.prototype.showBrief = function (kind, idx) {
     var SWm = window.SW && window.SW.Mission;
     var m = SWm ? (SWm.catalog()[kind] || [])[idx] : null;
@@ -11074,6 +11534,14 @@ body {
     var f = m.forces || {};
     var mine = f[this.side] || {}, theirs = f[this.side === 'blue' ? 'red' : 'blue'] || {};
     var sideName = (this.side === 'blue' ? '蓝方（我方）' : '红方（我方）');
+    var tut = (m.tutorial && m.tutorial.length) ? m.tutorial : (kind === 'skirmish' ? skirmishTips(idx + 1) : []);
+    var tutHtml = '';
+    if (tut.length) {
+      tutHtml = '<div class="mb-row tut"><b>本关教程</b><ol>' + tut.map(function (s) {
+        var txt = String(s), p = txt.indexOf('：');
+        return p > 0 ? '<li><i>' + txt.slice(0, p) + '</i>：' + txt.slice(p + 1) + '</li>' : '<li>' + txt + '</li>';
+      }).join('') + '</ol></div>';
+    }
 
     var brief = document.querySelector('#mn-brief');
     if (!brief) {
@@ -11087,6 +11555,7 @@ body {
         '<h2 class="mb-title">第 ' + (idx + 1) + ' 关 · ' + (m.name || '') + '</h2>' +
         '<div class="mb-row"><b>任务简报</b><p>' + (m.brief || '—') + '</p></div>' +
         (m.learn ? '<div class="mb-row learn"><b>战术要点</b><p>' + m.learn + '</p></div>' : '') +
+        tutHtml +
         '<div class="mb-row"><b>任务目标</b><p>' + ((m.objectives || []).map(function (o) { return o.text || ''; }).filter(Boolean).join('；') || '击沉对方编队') + '</p></div>' +
         '<div class="mb-grid">' +
           '<div><b>' + (mine.name || '我方') + '（' + sideName + '）</b>' +
@@ -12877,6 +13346,8 @@ body {
   /** 开战：mission 为 missions.js 的一条，side 为玩家所选方 */
   SW.Game.prototype.startBattle = function (mission, side) {
     this.clearBattle();
+    this._musicAlertUntil = 0;
+    if (window.SW && SW.Audio) SW.Audio.setMusic('battle');
     var other = (side === 'red') ? 'blue' : 'red';
     var myForce = mission.forces[side] || { name: '我方', ships: [] };
     var enForce = mission.forces[other] || { name: '敌方', ships: [] };
@@ -12983,11 +13454,25 @@ body {
     if (this.mission) this.mission.objective = txt + ' ｜ ' + Math.floor(b.elapsed / 60) + ':' + ('0' + Math.floor(b.elapsed % 60)).slice(-2);
     if (this.hud && this.hud.objText) this.hud.objText.textContent = txt;
 
+    // 配乐跟随威胁：有敌方反舰弹指向我方且进入 20 km，切到更急促的高威胁段；脱离后再落回战斗段
+    if (window.SW && SW.Audio && SW.Audio.setMusic) {
+      var incoming = 0;
+      var ms = this.missiles || [];
+      for (i = 0; i < ms.length; i++) {
+        var m = ms[i];
+        if (!m.alive || m.team !== 'red' || !m.target || m.target.team !== 'blue') continue;
+        if (Math.hypot(m.pos.x - m.target.pos.x, m.pos.z - m.target.pos.z) < 20000) incoming++;
+      }
+      if (incoming > 0) this._musicAlertUntil = b.elapsed + 6;
+      SW.Audio.setMusic(b.elapsed < this._musicAlertUntil ? 'alert' : 'battle');
+    }
+
     if (win) {
       b.over = true;
       this.result = 'win';
       if (this.hud) this.hud.showResult('任务达成', (mission.name || '') + ' · ' + b.objText, true);
       this.log('目标完成 —— 任务达成', 'kill');
+      if (window.SW && SW.Audio) { SW.Audio.setMusic('off'); SW.Audio.stinger('win'); }
       if (window.SW && SW.Audio && SW.Audio.radio) {
         SW.Audio.radioTick();
         SW.Audio.radio('任务达成，全体注意，战斗结束', { force: true, gap: 0 });
@@ -13000,6 +13485,7 @@ body {
       this.result = 'lose';
       if (this.hud) this.hud.showResult('任务失败', '我方编队已全部丧失战力', false);
       this.log('我方编队全灭 —— 任务失败', 'kill');
+      if (window.SW && SW.Audio) { SW.Audio.setMusic('off'); SW.Audio.stinger('lose'); }
       if (window.SW && SW.Audio && SW.Audio.radio) {
         SW.Audio.radioTick();
         SW.Audio.radio('我舰编队失去战力，任务失利', { force: true, gap: 0, rate: 0.98 });
