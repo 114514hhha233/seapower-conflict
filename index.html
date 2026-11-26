@@ -3416,8 +3416,8 @@ body {
     var alive = !!(ship && ship.alive && !ship.sinking);
     var spd = alive ? Math.min(1, Math.max(0, (ship.speed || 0) / 30)) : 0;
     var t = A.ctx.currentTime;
-    var target = alive ? 0.016 + spd * 0.060 : 0.002;
-    var wash = alive ? 0.006 + spd * 0.038 : 0;
+    var target = alive ? 0.008 + spd * 0.030 : 0.001;
+    var wash = alive ? 0.003 + spd * 0.016 : 0;
     try {
       A._engine.eg.gain.cancelScheduledValues(t);
       A._engine.eg.gain.setTargetAtTime(target, t, 0.18);
@@ -3831,7 +3831,7 @@ body {
   /* 按日志类型播声（Game.log 里调用） */
   A.onLog = function (type, msg) {
     if (!A.enabled || !A.ctx) return;
-    if (type === 'fire') { A.launch(); A.whoosh(); }
+    if (type === 'fire') { A.launch(); }
     else if (type === 'hit') { A.hitExplosion(false); }
     else if (type === 'kill') {
       if (msg && msg.indexOf('拦截') >= 0) A.intercept();
@@ -8460,6 +8460,7 @@ body {
     this.alt = this.origin.y;
     this.flown = 0;
     this.age = 0;
+    this._flightSnd = false;
     this.alive = true;
     this.terminalBlend = 0;
     this.phase = 'vls';          // vls 垂直出筒 → flight 巡航/末段
@@ -8575,6 +8576,11 @@ body {
   Missile.prototype.update = function (dt) {
     if (!this.alive) return;
     this.age += dt;
+    // 玩家本舰打出的弹，在出筒后 0.35s 补一次弹体掠空声；切换选中舰不会触发
+    if (!this._flightSnd && this.age > 0.35 && this.ownerShip && this.world && this.world.isPlayerShip && this.world.isPlayerShip(this.ownerShip)) {
+      this._flightSnd = true;
+      if (window.SW && SW.Audio && SW.Audio.whoosh) SW.Audio.whoosh();
+    }
 
     /* ---- 阶段 0：斜筒 / 单臂 / 导轨发射 —— 沿发射轴冲出去，再转巡航 */
     if (this.launchRun > 0) {
@@ -12748,8 +12754,17 @@ body {
 
   /* --------------------------------------------------------------- 选中 */
   Game.prototype.selectShip = function (ship) {
-    if (this.selected === ship) return;
-    if (this.selected) this.selected.setSelected(false);
+    if (this.selected === ship) {
+      for (var j = 0; j < this.ships.length; j++) {
+        if (this.ships[j] !== ship && this.ships[j].setSelected) this.ships[j].setSelected(false);
+      }
+      return;
+    }
+    // 任何情况下只保留一个选中环，防止切换/重开后海面残留多个椭圆环
+    for (var i = 0; i < this.ships.length; i++) {
+      if (this.ships[i] !== ship && this.ships[i].setSelected) this.ships[i].setSelected(false);
+    }
+    if (this.selected && this.selected !== ship) this.selected.setSelected(false);
     this.selected = ship;
     if (ship) {
       ship.setSelected(true);
@@ -14231,7 +14246,7 @@ body {
       if (incoming > 0) this._musicAlertUntil = b.elapsed + 6;
       SW.Audio.setMusic(b.elapsed < this._musicAlertUntil ? 'alert' : 'battle');
     }
-    var engineShip = (this.selected && this.selected.team === 'blue') ? this.selected : this.blueMain;
+    var engineShip = this.blueMain;
     if (window.SW && SW.Audio && SW.Audio.setEngine) SW.Audio.setEngine(engineShip);
 
     if (win) {
