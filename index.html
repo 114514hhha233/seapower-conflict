@@ -7754,7 +7754,8 @@ body {
     for (var i = 0; i < spins.length; i++) spins[i].obj.rotation.y += spins[i].speed * dt;
 
     // ---- 选中环跟随（探测覆盖已经移到雷达面板）
-    this.selRing.position.set(this.pos.x, 1.3, this.pos.z);
+    this.selRing.position.set(this.pos.x, this.obj.position.y + 1.1, this.pos.z);
+    this.selRing.rotation.y = this.heading;
     var rt = this.world.time;
     if (this.selRing.visible) {
       var pulse = 0.55 + 0.35 * Math.sin(rt * 3.4);
