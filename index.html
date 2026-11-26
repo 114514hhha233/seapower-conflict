@@ -2834,10 +2834,17 @@ body {
     return true;
   };
 
+  A._musicBooted = false;
   A.unlock = function () {
     if (!A.init()) return;
     if (A.ctx.state === 'suspended') A.ctx.resume();
     A.warmVoice();
+    // 首次触摸解锁后强制把当前配乐重启一遍：避免 AudioContext 在页面加载时被挂起，
+    // 定时器空转、等到玩家进战场才响（听起来就像“没有配乐”）。
+    if (!A._musicBooted && A.musicOn && A._pendingMusic) {
+      A._musicBooted = true;
+      A.setMusic(A._pendingMusic, true);
+    }
   };
 
   /** 预热点火语音引擎：首次解锁时用一条音量 0 的短句把 TTS 唤醒，避免第一句话等 1~2 秒 */
@@ -3026,7 +3033,7 @@ body {
   try {
     if (window.localStorage && window.localStorage.getItem('sp_music') === '0') A.musicOn = false;
   } catch (e) { }
-  A.musicVolume = 0.16;
+  A.musicVolume = 0.24;
   A._musicMode = '';
   A._pendingMusic = 'menu';
   A._musicGain = null;
@@ -3090,6 +3097,14 @@ body {
     o.frequency.exponentialRampToValueAtTime(freq * 0.62, t0 + 0.5);
     mEnv(o, vol, 0.01, 0.9, t0);
     o.start(t0); o.stop(t0 + 1.0);
+  }
+
+  function mTone(t0, freq, vol, type, dur) {
+    var o = A.ctx.createOscillator();
+    o.type = type || 'triangle';
+    o.frequency.setValueAtTime(freq, t0);
+    mEnv(o, vol, 0.03, dur || 0.6, t0);
+    o.start(t0); o.stop(t0 + (dur || 0.6) + 0.08);
   }
 
   function mPad(freqs, type, cutoff, vol) {
@@ -3160,13 +3175,13 @@ body {
       bus.gain.linearRampToValueAtTime(A.musicVolume, t0 + 0.5);
     } catch (e) { }
     if (mode === 'menu') {
-      mPad([55, 82.5, 110], 'sine', 240, 0.038);
-      mSea(0.012);
+      mPad([55, 110, 164.8], 'triangle', 320, 0.045);
+      mSea(0.018);
     } else if (mode === 'battle') {
-      mPad([55, 110, 164.81], 'sawtooth', 300, 0.032);
-      mPad([82.41], 'triangle', 180, 0.025);
+      mPad([55, 110, 164.81], 'sawtooth', 300, 0.045);
+      mPad([82.41], 'triangle', 180, 0.030);
     } else if (mode === 'alert') {
-      mPad([73.42, 146.83], 'square', 520, 0.030);
+      mPad([73.42, 146.83], 'square', 520, 0.040);
     }
     var stepMs = mode === 'menu' ? 280 : (mode === 'battle' ? 150 : 112);
     A._musicTimer = setInterval(A._musicTick, stepMs);
@@ -3178,19 +3193,23 @@ body {
     var t0 = A.ctx.currentTime + 0.02;
     var s = A._musicStep++;
     if (A._musicMode === 'menu') {
-      if (s % 8 === 0) mKick(t0, 0.030, 92);
-      if (s % 32 === 0) mPing(t0, 740, 0.018);
-      if (s % 64 === 32) mSnare(t0, 0.008);
+      if (s % 8 === 0) mKick(t0, 0.038, 92);
+      if (s % 16 === 0) mTone(t0, 220, 0.024, 'triangle', 0.7);
+      if (s % 16 === 4) mTone(t0, 277.18, 0.020, 'triangle', 0.6);
+      if (s % 16 === 8) mTone(t0, 329.63, 0.022, 'triangle', 0.7);
+      if (s % 16 === 12) mTone(t0, 220, 0.018, 'triangle', 0.55);
+      if (s % 32 === 0) mPing(t0, 740, 0.020);
+      if (s % 64 === 32) mSnare(t0, 0.010);
     } else if (A._musicMode === 'battle') {
-      if (s % 4 === 0) mKick(t0, 0.048, 112);
-      if (s % 8 === 4) mSnare(t0, 0.022);
-      if (s % 16 === 0) mBass(t0, s % 32 === 0 ? 55 : 49, 0.032);
-      if (s % 8 === 0) mPing(t0, 320, 0.010);
+      if (s % 4 === 0) mKick(t0, 0.060, 112);
+      if (s % 8 === 4) mSnare(t0, 0.030);
+      if (s % 16 === 0) { mBass(t0, s % 32 === 0 ? 55 : 49, 0.040); mTone(t0, s % 32 === 0 ? 110 : 98, 0.018, 'sawtooth', 0.45); }
+      if (s % 8 === 0) mPing(t0, 320, 0.012);
     } else if (A._musicMode === 'alert') {
-      if (s % 2 === 0) mKick(t0, 0.040, 124);
-      if (s % 4 === 2) mSnare(t0, 0.024);
-      if (s % 8 === 0) mBass(t0, 73.42, 0.030);
-      if (s % 8 === 4) mPing(t0, 880, 0.014);
+      if (s % 2 === 0) mKick(t0, 0.052, 124);
+      if (s % 4 === 2) mSnare(t0, 0.030);
+      if (s % 8 === 0) mBass(t0, 73.42, 0.038);
+      if (s % 8 === 4) mPing(t0, 880, 0.018);
     }
   };
 
