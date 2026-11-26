@@ -8577,7 +8577,8 @@ body {
     if (!this.alive) return;
     this.age += dt;
     // 玩家本舰打出的弹，在出筒后 0.35s 补一次弹体掠空声；切换选中舰不会触发
-    if (!this._flightSnd && this.age > 0.35 && this.ownerShip && this.world && this.world.isPlayerShip && this.world.isPlayerShip(this.ownerShip)) {
+    if (!this._flightSnd && this.age > 0.35 && this.ownerShip && this.world &&
+        (this.ownerShip === this.world.blueMain || (this.world.isPlayerShip && this.world.isPlayerShip(this.ownerShip)))) {
       this._flightSnd = true;
       if (window.SW && SW.Audio && SW.Audio.whoosh) SW.Audio.whoosh();
     }
