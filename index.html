@@ -14246,7 +14246,7 @@ body {
       if (incoming > 0) this._musicAlertUntil = b.elapsed + 6;
       SW.Audio.setMusic(b.elapsed < this._musicAlertUntil ? 'alert' : 'battle');
     }
-    var engineShip = this.blueMain;
+    var engineShip = (this.selected && this.selected !== this.blueMain) ? null : this.blueMain;
     if (window.SW && SW.Audio && SW.Audio.setEngine) SW.Audio.setEngine(engineShip);
 
     if (win) {
