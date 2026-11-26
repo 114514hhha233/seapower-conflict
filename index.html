@@ -13372,9 +13372,9 @@ body {
     var tmpHit = new THREE.Vector3();
     var raycaster = new THREE.Raycaster();
 
-    // 跟船时不允许把俯仰角拖到贴海面；初始 24° 就是好视角
+    // 跟船/自由都允许压到 12°；船体仍会被 lookAt 钉在画面中线
     function shipMinElev(c) {
-      return (c.follow && typeof c.follow.setCourse === 'function') ? 24 * U.D2R : 12 * U.D2R;
+      return 12 * U.D2R;
     }
 
     function ndc(ev) {
@@ -13472,9 +13472,7 @@ body {
         if (mdx || mdy) {
           if (self.cam.follow) {
             self.cam.azGoal -= mdx * 0.004;
-            if (!(self.cam.follow && typeof self.cam.follow.setCourse === 'function')) {
-              self.cam.elevGoal = U.clamp(self.cam.elevGoal + mdy * 0.003, shipMinElev(self.cam), 82 * U.D2R);
-            }
+            self.cam.elevGoal = U.clamp(self.cam.elevGoal + mdy * 0.003, shipMinElev(self.cam), 82 * U.D2R);
           } else {
             self.camera.getWorldDirection(tmpDir);
             tmpDir.y = 0;
@@ -13507,7 +13505,6 @@ body {
       if (drag.mode === 'rotate') {
         var cc = self.cam;
         var minE = shipMinElev(cc);
-        var shipLock = !!(cc.follow && typeof cc.follow.setCourse === 'function');
         if (cc.follow && typeof cc.follow.desiredAlt === 'function') {
           // 跟弹：左右拖拽绕弹体旋转（-170°~+170°），上下拖拽改俯仰
           if (cc.mslAzOff == null) cc.mslAzOff = 0.34;
@@ -13517,8 +13514,7 @@ body {
           cc.followHeading = false;      // 手动环绕：暂时脱离船尾后方
           cc.azGoal -= dx * 0.004;
         }
-        // 跟船时只绕船转，不因手指上下抖动把俯仰角压低/抬高；初始 24° 保持
-        if (!shipLock) cc.elevGoal = U.clamp(cc.elevGoal + dy * 0.003, minE, 82 * U.D2R);
+        cc.elevGoal = U.clamp(cc.elevGoal + dy * 0.003, minE, 82 * U.D2R);
       } else {
         // 手动平移 = 自由视角，自动解除跟随
         if (self.cam.follow) {
