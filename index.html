@@ -10751,21 +10751,6 @@ body {
       if (!ac.alive) continue;
       this.drawOne(ctx, cam, ac, ac.pos, 'air', w, h, cx, cy, hw, hh, ref, v);
     }
-    // 导弹也画一个带型号的标记：和飞机的 AEW 一样能一眼看出“这是什么、哪一方的”
-    for (var mi = 0; mi < g.missiles.length; mi++) {
-      var mm = g.missiles[mi];
-      if (!mm.alive || !mm.pos) continue;
-      this.drawOne(ctx, cam, mm, mm.pos, 'msl', w, h, cx, cy, hw, hh, ref, v);
-    }
-  };
-
-  HUD.prototype.mslCode = function (def) {
-    var role = def && def.role;
-    if (role === 'as' || role === 'asm') return 'ASM';
-    if (role === 'aa' || role === 'sam') return 'SAM';
-    if (role === 'pd') return 'PD';
-    if (role === 'ciws') return 'CIWS';
-    return 'MSL';
   };
 
   HUD.prototype.drawOne = function (ctx, cam, o, pos, kind, w, h, cx, cy, hw, hh, ref, v) {
@@ -10773,7 +10758,7 @@ body {
     var dToCam = cam.position.distanceTo(pos);
     if (dToCam > 300000) return;
 
-    v.set(pos.x, pos.y + (kind === 'air' ? 0 : (kind === 'msl' ? 0 : (o.def && o.def.hull ? o.def.hull.freeboard : 4) + 8)), pos.z);
+    v.set(pos.x, pos.y + (kind === 'air' ? 0 : (o.def && o.def.hull ? o.def.hull.freeboard : 4) + 8), pos.z);
     v.project(cam);
     var behind = v.z > 1;
     var sx = w - (v.x + 1) * 0.5 * w;   // 3D 画布左右镜像，标记同步翻转
@@ -10781,16 +10766,13 @@ body {
     if (behind) { sx = cx - (sx - cx); sy = cy - (sy - cy); }
 
     // 近景里舰体已经看得很清楚，不再加标记（但离屏时仍要画箭头）
-    var isRed = o.team === 'red';
-    var isSelf = kind === 'ship' && !isRed;
+    var isRed = kind === 'ship' && o.team === 'red';
+    var isSelf = kind === 'ship' && o.team !== 'red';
 
     var txt, col, locked = (kind === 'ship' && g.targetShip === o);
     if (kind === 'air') {
       txt = (o.team === 'blue' ? 'AEW' : 'AEW-R');
       col = '#a9ecff';
-    } else if (kind === 'msl') {
-      txt = (isRed ? 'T-' : 'B-') + this.mslCode(o.def) + ' ' + ((o.def && o.def.name) || 'MSL');
-      col = isRed ? '#ff9a7d' : '#9ce9ff';
     } else if (isRed) {
       txt = 'T' + (o.pennant || '--') + ' ' + Math.round(U.distXZ(ref.pos, pos) / 1000) + 'km';
       col = locked ? '#ffd166' : '#ff9170';
@@ -10809,24 +10791,8 @@ body {
       ctx.strokeStyle = col;
       ctx.fillStyle = col;
       ctx.lineWidth = 1.2;
-      if (kind === 'msl') {
-        // 导弹用菱形弹标，和舰艇圆标、飞机圆标分开；颜色区分红蓝方
-        ctx.beginPath();
-        ctx.moveTo(sx, sy - 8);
-        ctx.lineTo(sx + 5, sy - 2);
-        ctx.lineTo(sx + 3, sy + 5);
-        ctx.lineTo(sx, sy + 2);
-        ctx.lineTo(sx - 3, sy + 5);
-        ctx.lineTo(sx - 5, sy - 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(8,20,28,0.9)';
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
-      } else {
-        ctx.beginPath(); ctx.arc(sx, sy, locked ? 8 : 5.5, 0, Math.PI * 2); ctx.stroke();
-        if (locked) { ctx.beginPath(); ctx.arc(sx, sy, 13, 0, Math.PI * 2); ctx.stroke(); }
-      }
+      ctx.beginPath(); ctx.arc(sx, sy, locked ? 8 : 5.5, 0, Math.PI * 2); ctx.stroke();
+      if (locked) { ctx.beginPath(); ctx.arc(sx, sy, 13, 0, Math.PI * 2); ctx.stroke(); }
       ctx.beginPath();
       ctx.moveTo(sx - 16, sy); ctx.lineTo(sx - 9, sy);
       ctx.moveTo(sx + 9, sy); ctx.lineTo(sx + 16, sy);
