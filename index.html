@@ -740,6 +740,16 @@ html, body {
 .cmd-title { font-size: 14px; letter-spacing: 4px; color: #eaf8ff; white-space: nowrap; }
 .cmd-title span { margin-left: 10px; font-size: 9px; letter-spacing: 2px; color: rgba(95, 227, 255, .45); }
 .cmd-now { flex: 1 1 auto; font-size: 11px; color: #9fdcef; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cmd-tools { display: flex; align-items: center; gap: 4px; }
+.cmd-tools button {
+  min-width: 30px; height: 28px; padding: 0 7px;
+  border: 1px solid rgba(95, 227, 255, .35);
+  background: rgba(7, 30, 42, .9);
+  color: #bfe9f7; font: 13px/1 "Microsoft YaHei", sans-serif; cursor: pointer;
+}
+.cmd-tools button:hover { border-color: #5fe3ff; color: #fff; }
+.cmd-tools #cmd-fitb { font-size: 10px; }
+.cmd-tools span { min-width: 38px; font: 10px Consolas, monospace; color: #ffd166; text-align: right; }
 .cmd-keys { font-size: 10px; color: rgba(140, 190, 210, .5); white-space: nowrap; }
 .cmd-units {
   position: absolute;
@@ -847,6 +857,13 @@ body {
   .cmd-bar button { min-width: 0; flex: 1 1 0; padding: 6px 4px; font-size: 11px; }
   .cmd-keys { display: none; }
   .cmd-title span { display: none; }
+  .cmd-top { height: 44px; gap: 7px; padding: 0 7px; }
+  .cmd-title { font-size: 12px; letter-spacing: 2px; }
+  .cmd-now { font-size: 10px; }
+  .cmd-tools { gap: 3px; }
+  .cmd-tools button { min-width: 27px; height: 26px; padding: 0 5px; font-size: 12px; }
+  .cmd-tools #cmd-fitb { font-size: 9px; }
+  .cmd-tools span { display: none; }
   #app canvas { touch-action: none; }
 }
 
@@ -2409,61 +2426,97 @@ body {
 .mb-row.tut li { margin: 4px 0; color: #d3e8f1; font-size: 12px; line-height: 1.55; }
 .mb-row.tut li i { font-style: normal; color: #ffd98a; font-weight: 600; }
 
-/* ===== v35 续弹补给 / 关注作者 ===== */
-.refill-mask {
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 96 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 12px !important;
-  background: rgba(3, 10, 16, .86) !important;
-  backdrop-filter: blur(3px) !important;
-  pointer-events: auto !important;
+/* ===== v36 续弹补给 / 藏在齐射后面 / 不另开窗口 ===== */
+.refill-dock {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.refill-mask.hidden { display: none !important; }
-.refill-card {
-  width: min(86vw, 430px) !important;
-  padding: 13px 14px 12px !important;
-  background: linear-gradient(180deg, rgba(9, 26, 36, .99), rgba(5, 16, 23, .99)) !important;
-  border: 1px solid rgba(255, 212, 121, .5) !important;
-  border-radius: 11px !important;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, .6) !important;
-  color: #d9edf5 !important;
-  font-size: 12px !important;
-  line-height: 1.6 !important;
+.refill-dock.hidden { display: none; }
+.refill-entry {
+  width: 100%;
+  border-color: rgba(255, 212, 121, .58) !important;
+  background: rgba(45, 34, 12, .92) !important;
 }
-.rf-head { display: flex !important; align-items: center !important; justify-content: space-between !important; margin-bottom: 6px !important; }
-.rf-head b { color: #ffd479 !important; font-size: 16px !important; letter-spacing: 2px !important; }
-.rf-head button { border: 0 !important; background: transparent !important; color: #9fd7e6 !important; font-size: 21px !important; line-height: 1 !important; cursor: pointer !important; }
-.rf-sub { margin: 0 0 10px !important; color: #9fc2ce !important; font-size: 11.5px !important; }
-.rf-follow {
-  display: block !important;
-  margin: 8px 0 10px !important;
-  padding: 9px 10px !important;
-  text-align: center !important;
+.refill-entry b { color: #ffe0a0 !important; }
+.refill-entry span { color: rgba(255, 224, 160, .75) !important; }
+.refill-entry u { color: rgba(255, 212, 121, .8) !important; }
+.refill-gate {
+  padding: 6px;
+  border: 1px solid rgba(255, 212, 121, .5);
+  border-radius: 6px;
+  background: rgba(20, 16, 7, .96);
+}
+.refill-gate.hidden { display: none; }
+.rg-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.rg-top b {
+  color: #ffd479;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .5px;
+}
+.rg-top button {
+  width: auto !important;
+  min-height: 0 !important;
+  padding: 0 2px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #9fd7e6 !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+}
+.rg-follow {
+  display: block;
+  padding: 5px 6px;
+  margin-bottom: 4px;
+  border-radius: 5px;
+  background: #ffd479;
+  color: #101820;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+.rg-row { display: flex; align-items: center; gap: 5px; }
+.rg-check {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  color: #d3e8f1;
+  font-size: 9px;
+  white-space: nowrap;
+}
+.rg-check input {
+  width: 14px !important;
+  height: 14px !important;
+  accent-color: #ffd479;
+}
+.rg-claim {
+  flex: 1;
+  min-height: 27px !important;
+  padding: 3px 4px !important;
+  border: 1px solid rgba(255, 212, 121, .6) !important;
+  border-radius: 5px !important;
+  background: rgba(255, 212, 121, .9) !important;
   color: #101820 !important;
-  background: #ffd479 !important;
-  border-radius: 7px !important;
+  font-size: 9.5px !important;
   font-weight: 600 !important;
-  text-decoration: none !important;
+  text-align: center !important;
 }
-.rf-check { display: flex !important; align-items: center !important; gap: 7px !important; color: #d3e8f1 !important; font-size: 12px !important; }
-.rf-check input { width: 17px !important; height: 17px !important; accent-color: #ffd479 !important; }
-.rf-actions { display: flex !important; gap: 8px !important; margin-top: 12px !important; }
-.rf-actions button {
-  flex: 1 !important;
-  min-height: 38px !important;
-  border: 1px solid rgba(95, 227, 255, .32) !important;
-  border-radius: 7px !important;
-  background: rgba(10, 31, 43, .9) !important;
-  color: #bfe8f4 !important;
-  font: 600 13px/1 "Microsoft YaHei", sans-serif !important;
-  cursor: pointer !important;
+.rg-claim:disabled { opacity: .35; cursor: not-allowed; }
+.rg-note {
+  margin-top: 3px;
+  color: rgba(159, 194, 206, .65);
+  font-size: 8px;
+  line-height: 1.25;
 }
-.rf-actions #rf-claim { background: rgba(255, 212, 121, .9) !important; color: #101820 !important; border-color: #ffd479 !important; }
-.rf-actions button:disabled { opacity: .35 !important; cursor: not-allowed !important; }
 
 </style>
 </head>
@@ -4427,7 +4480,7 @@ body {
   window.SW_MISSIONS = {
     campaign: [
       {
-        id: 'c01', n: 1, year: 1967, name: '埃拉特号 · 冥河初啼',
+        id: 'c01', n: 1, year: 1967, name: '埃拉特号 · 冥河初啼', tod: 'dusk',
         event: '1967-10-21 第三次中东战争 · 东地中海',
         brief: '埃及导弹艇在雷达距离外齐射 SS-N-2“冥河”，以色列驱逐舰埃拉特号被击中沉没。' +
           '这是海战史上第一次用反舰导弹击沉军舰——从此“看得远比打得远”成了海军第一课。',
@@ -4442,12 +4495,11 @@ body {
           red: { name: '以色列海军', tag: 'IL', ships: [{ type: 'zclass', n: 1, name: '埃拉特号', pennant: 'E-1' }] }
         },
         deploy: { blue: { x: 0, z: -15000, heading: 0 }, red: { x: 0, z: 15000, heading: 180 } },
-        objectives: [{ kind: 'destroy_all', text: '击沉埃拉特号' }],
-        ammoScale: 2,
+        objectives: [{ kind: 'destroy_all', text: '击沉埃拉特号' }],
         limit: 600
       },
       {
-        id: 'c02', n: 2, year: 1973, name: '拉塔基亚 · 导弹艇群战',
+        id: 'c02', n: 2, year: 1973, name: '拉塔基亚 · 导弹艇群战', tod: 'night',
         event: '1973-10-07 第四次中东战争 · 拉塔基亚外海',
         brief: '以色列萨尔级与叙利亚蚊子级、黄蜂级在 40 km 内互相齐射，双方都用冥河与加布里埃尔。' +
           '小艇群战第一次证明：谁先转向脱离，谁就先被锁定。',
@@ -4462,12 +4514,11 @@ body {
           red: { name: '叙利亚海军', tag: 'SY', ships: [{ type: 'osa205', n: 3, name: '蚊子级导弹艇', pennant: 'HS', gap: 1500 }] }
         },
         deploy: { blue: { x: -18000, z: -23000, heading: 20 }, red: { x: 18000, z: 23000, heading: 200 } },
-        objectives: [{ kind: 'destroy_all', text: '击沉全部敌方导弹艇' }],
-        ammoScale: 2,
+        objectives: [{ kind: 'destroy_all', text: '击沉全部敌方导弹艇' }],
         limit: 540
       },
       {
-        id: 'c03', n: 3, year: 1982, name: '谢菲尔德号 · 飞鱼掠海',
+        id: 'c03', n: 3, year: 1982, name: '谢菲尔德号 · 飞鱼掠海', tod: 'morning',
         event: '1982-05-04 马岛战争 · 南大西洋',
         brief: '阿根廷超军旗攻击机在 30 km 外发射 AM-39“飞鱼”，导弹掠海 2 m 突防，' +
           '英国 42 型驱逐舰谢菲尔德号的铝合金上层建筑被引燃。',
@@ -4482,12 +4533,11 @@ body {
           red: { name: '阿根廷航空兵', tag: 'AR', ships: [{ type: 'perry_ffg', n: 2, name: '飞鱼发射阵位', pennant: 'AR', gap: 9000 }] }
         },
         deploy: { blue: { x: 0, z: -26000, heading: 0 }, red: { x: 0, z: 26000, heading: 180 } },
-        objectives: [{ kind: 'destroy_all', text: '击沉敌方发射阵位（或撑过 5 分钟）' }, { kind: 'survive', sec: 300, text: '谢菲尔德号坚持 5 分钟' }],
-        ammoScale: 2,
+        objectives: [{ kind: 'destroy_all', text: '击沉敌方发射阵位（或撑过 5 分钟）' }, { kind: 'survive', sec: 300, text: '谢菲尔德号坚持 5 分钟' }],
         limit: 480
       },
       {
-        id: 'c04', n: 4, year: 1982, name: '贝尔格拉诺将军号 · 核潜艇的猎场',
+        id: 'c04', n: 4, year: 1982, name: '贝尔格拉诺将军号 · 核潜艇的猎场', tod: 'evening',
         event: '1982-05-02 马岛战争 · 南纬 55 度',
         brief: '英国核潜艇在 200 km 外抢占阵位，用二战老式鱼雷击沉阿根廷巡洋舰贝尔格拉诺将军号。' +
           '水面舰在开阔海域没有反潜掩护，就是活靶。',
@@ -4502,12 +4552,11 @@ body {
           red: { name: '阿根廷海军', tag: 'AR', ships: [{ type: 'perry_ffg', n: 1, name: '贝尔格拉诺将军号', pennant: 'C4' }, { type: 'osa205', n: 2, name: '导弹艇', pennant: 'AR', gap: 2600 }] }
         },
         deploy: { blue: { x: 0, z: -30000, heading: 0 }, red: { x: 0, z: 30000, heading: 180 } },
-        objectives: [{ kind: 'destroy_all', text: '击沉全部敌方舰艇' }],
-        ammoScale: 2,
+        objectives: [{ kind: 'destroy_all', text: '击沉全部敌方舰艇' }],
         limit: 600
       },
       {
-        id: 'c05', n: 5, year: 1988, name: '祈祷螳螂 · 波斯湾油轮战',
+        id: 'c05', n: 5, year: 1988, name: '祈祷螳螂 · 波斯湾油轮战', tod: 'morning',
         event: '1988-04-18 两伊战争 · 波斯湾',
         brief: '美军对伊朗海上平台的报复行动演变成整日海战：导弹艇、护卫舰、反舰导弹在 ' +
           '80 km 的狭窄水域里互相倾泻，双方都吃过“友军识别”的亏。',
@@ -4522,12 +4571,11 @@ body {
           red: { name: '伊朗海军', tag: 'IR', ships: [{ type: 'osa205', n: 4, name: '导弹艇', pennant: 'IR', gap: 1600 }] }
         },
         deploy: { blue: { x: -12000, z: -27000, heading: 10 }, red: { x: 14000, z: 27000, heading: 190 } },
-        objectives: [{ kind: 'destroy_all', text: '击沉敌方全部导弹艇' }],
-        ammoScale: 2,
+        objectives: [{ kind: 'destroy_all', text: '击沉敌方全部导弹艇' }],
         limit: 540
       },
       {
-        id: 'c06', n: 6, year: 1991, name: '沙漠风暴 · 海上拦截',
+        id: 'c06', n: 6, year: 1991, name: '沙漠风暴 · 海上拦截', tod: 'night',
         event: '1991-01 海湾战争 · 波斯湾北部',
         brief: '多国部队的宙斯盾巡洋舰与驱逐舰在油轮航道上建立封锁线，伊拉克导弹艇试图夜袭。' +
           '这是“宙斯盾＋垂发”第一次在实战里拦下反舰导弹。',
@@ -4542,12 +4590,11 @@ body {
           red: { name: '伊拉克海军', tag: 'IQ', ships: [{ type: 'osa205', n: 4, name: '导弹艇', pennant: 'IQ', gap: 1700 }, { type: 'type42', n: 1, name: '巡逻护卫舰', pennant: 'IQ', gap: 8000 }] }
         },
         deploy: { blue: { x: 0, z: -33000, heading: 0 }, red: { x: 0, z: 33000, heading: 180 } },
-        objectives: [{ kind: 'destroy_all', text: '肃清敌方水面编队' }],
-        ammoScale: 2,
+        objectives: [{ kind: 'destroy_all', text: '肃清敌方水面编队' }],
         limit: 600
       },
       {
-        id: 'c07', n: 7, year: 2019, name: '霍尔木兹 · 油轮护航',
+        id: 'c07', n: 7, year: 2019, name: '霍尔木兹 · 油轮护航', tod: 'dawn',
         event: '2019-06 霍尔木兹海峡',
         brief: '油轮连续遇袭，护航编队在 30 km 宽的水道里与快艇群、岸舰导弹周旋。' +
           '狭窄水域里，“谁先暴露谁先死”。',
@@ -4562,12 +4609,11 @@ body {
           red: { name: '岸基突击群', tag: 'IR', ships: [{ type: 'osa205', n: 4, name: '快艇群', pennant: 'IR', gap: 1200 }, { type: 'light_frigate', n: 1, name: '轻型护卫舰', pennant: 'IR', gap: 7000 }] }
         },
         deploy: { blue: { x: 0, z: -30000, heading: 0 }, red: { x: 6000, z: 30000, heading: 180 } },
-        objectives: [{ kind: 'destroy_all', text: '击沉全部来袭快艇与护卫舰' }],
-        ammoScale: 2,
+        objectives: [{ kind: 'destroy_all', text: '击沉全部来袭快艇与护卫舰' }],
         limit: 480
       },
       {
-        id: 'c08', n: 8, year: 2027, name: '第一岛链 · 大驱对决',
+        id: 'c08', n: 8, year: 2027, name: '第一岛链 · 大驱对决', tod: 'noon',
         event: '架空 2027 · 西太平洋',
         brief: '055 与伯克 Flight III 在 80 km 外互相锁定：一边是 112 单元垂发＋鹰击-18，' +
           '一边是 96 单元＋LRASM。这是一场“谁先被定位”的仗。',
@@ -4586,7 +4632,7 @@ body {
         limit: 720
       },
       {
-        id: 'c09', n: 9, year: 2029, name: '航母对航母 · 远洋决战',
+        id: 'c09', n: 9, year: 2029, name: '航母对航母 · 远洋决战', tod: 'dusk',
         event: '架空 2029 · 菲律宾海',
         brief: '两个航母战斗群在 90 km 外互相搜索。水面舰只是盾，真正决定胜负的是' +
           '谁先把对方的航母定位。',
@@ -4605,7 +4651,7 @@ body {
         limit: 900
       },
       {
-        id: 'c10', n: 10, year: 2031, name: '无人集群 · 饱和突防',
+        id: 'c10', n: 10, year: 2031, name: '无人集群 · 饱和突防', tod: 'night',
         event: '架空 2031 · 东海',
         brief: '十余艘无人/半无人导弹艇用 40 节高速从多个方位同时压上，用数量换饱和。' +
           '防守方只有一次机会把火控通道分完。',
@@ -4620,8 +4666,7 @@ body {
           red: { name: '无人艇集群', tag: 'UX', ships: [{ type: 'light_frigate', n: 5, name: '无人导弹艇', pennant: 'UX', gap: 1400 }, { type: 'medium_frigate', n: 1, name: '集群母舰', pennant: 'UX', gap: 12000 }] }
         },
         deploy: { blue: { x: 0, z: -34000, heading: 0 }, red: { x: 0, z: 34000, heading: 180 } },
-        objectives: [{ kind: 'destroy_all', text: '击沉全部来袭无人艇' }],
-        ammoScale: 2,
+        objectives: [{ kind: 'destroy_all', text: '击沉全部来袭无人艇' }],
         limit: 540
       }
     ],
@@ -4631,11 +4676,11 @@ body {
       { n: 1, name: 'Lv.1 · 单艇遭遇', desc: '一艘轻型护卫舰对一艘导弹艇。练手。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'light_frigate', n: 1, pennant: '501' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'osa205', n: 1, pennant: 'HS' }] } },
-        deploy: { blue: { x: 0, z: -20000, heading: 0 }, red: { x: 0, z: 20000, heading: 180 } }, ammoScale: 2, limit: 420 },
+        deploy: { blue: { x: 0, z: -20000, heading: 0 }, red: { x: 0, z: 20000, heading: 180 } }, limit: 420 },
       { n: 2, name: 'Lv.2 · 双艇夹击', desc: '两艘导弹艇从两翼压上。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'medium_frigate', n: 1, pennant: '547' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'osa205', n: 2, gap: 6000, pennant: 'HS' }] } },
-        deploy: { blue: { x: 0, z: -23000, heading: 0 }, red: { x: 0, z: 23000, heading: 180 } }, ammoScale: 2, limit: 420 },
+        deploy: { blue: { x: 0, z: -23000, heading: 0 }, red: { x: 0, z: 23000, heading: 180 } }, limit: 420 },
       { n: 3, name: 'Lv.3 · 护卫舰对护卫舰', desc: '同级别对轰，看谁先打出第一波。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'medium_frigate', n: 1, pennant: '547' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'perry_ffg', n: 1, pennant: 'FFG' }] } },
@@ -4643,7 +4688,7 @@ body {
       { n: 4, name: 'Lv.4 · 三艇快攻', desc: '三条导弹艇＋一艘老式驱逐舰。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'medium_destroyer', n: 1, pennant: '172' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'osa205', n: 3, gap: 2200, pennant: 'HS' }, { type: 'zclass', n: 1, gap: 9000, pennant: 'Z' }] } },
-        deploy: { blue: { x: 0, z: -28000, heading: 0 }, red: { x: 0, z: 28000, heading: 180 } }, ammoScale: 2, limit: 480 },
+        deploy: { blue: { x: 0, z: -28000, heading: 0 }, red: { x: 0, z: 28000, heading: 180 } }, limit: 480 },
       { n: 5, name: 'Lv.5 · 双护卫编队', desc: '两艘佩里级，反舰弹密度上来了。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'medium_destroyer', n: 1, pennant: '172' }, { type: 'light_frigate', n: 1, pennant: '501', gap: 4000 }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'perry_ffg', n: 2, gap: 5000, pennant: 'FFG' }] } },
@@ -4651,7 +4696,7 @@ body {
       { n: 6, name: 'Lv.6 · 谢菲尔德再现', desc: '42 型＋导弹艇混合编队。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'medium_destroyer', n: 1, pennant: '172' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'type42', n: 1, pennant: 'D80' }, { type: 'osa205', n: 2, gap: 6000, pennant: 'HS' }] } },
-        deploy: { blue: { x: 0, z: -33000, heading: 0 }, red: { x: 0, z: 33000, heading: 180 } }, ammoScale: 2, limit: 540 },
+        deploy: { blue: { x: 0, z: -33000, heading: 0 }, red: { x: 0, z: 33000, heading: 180 } }, limit: 540 },
       { n: 7, name: 'Lv.7 · 大驱对巡洋', desc: '055 单舰对提康德罗加。',
         forces: { blue: { name: '我方', tag: 'CN', ships: [{ type: 'heavy_destroyer', n: 1, pennant: '101' }] },
                   red: { name: '敌方', tag: 'XX', ships: [{ type: 'aa_cruiser', n: 1, pennant: 'CG' }] } },
@@ -4752,17 +4797,72 @@ body {
     this.renderer = renderer;
     this.time = 0;
 
-    // 太阳方位：西南低空，侧顺光，让舰体朝向镜头的一侧被照亮
+    // 默认午后侧顺光；具体关卡由 setTimeOfDay 切到黎明/清晨/正午/黄昏/夜战
     this.sunDir = new THREE.Vector3(-0.56, 0.36, -0.75).normalize();
     this.sunColor = new THREE.Color(0xfff1d8);
     this.fogColor = new THREE.Color(0xa9c6d8);
+    this.tod = 'afternoon';
 
     this.createLights();
     this.createSky();
     this.createOcean();
 
     scene.fog = new THREE.Fog(this.fogColor.getHex(), 32000, 320000);
+    this.setTimeOfDay('afternoon');
   }
+
+  /* 时段预设：太阳方位/色温、雾、天空、海面、环境光一起换 */
+  var TOD_PRESETS = {
+    dawn: {
+      label: '黎明', sunDir: [-0.82, 0.08, 0.56], sunColor: 0xffb98a, sunIntensity: 0.85, sunGlow: 0.10, night: 0.15,
+      hemiSky: 0x9fb9d9, hemiGround: 0x1b2a33, hemiIntensity: 0.55, ambColor: 0x536a7a, ambIntensity: 0.32,
+      fog: 0xa7a6b5, fogNear: 16000, fogFar: 260000, clear: 0x111820,
+      zenith: 0x243a63, mid: 0x6c7fa0, horizon: 0xe0a184,
+      skyLow: 0x8c7a82, skyHigh: 0x2a3a5c, deep: 0x122a35, shallow: 0x274c57, far: 0x1b2e3b
+    },
+    morning: {
+      label: '清晨', sunDir: [-0.74, 0.24, -0.52], sunColor: 0xffe4c0, sunIntensity: 1.28, sunGlow: 0.13, night: 0,
+      hemiSky: 0xcfe5ef, hemiGround: 0x29454f, hemiIntensity: 0.82, ambColor: 0x6f95a5, ambIntensity: 0.40,
+      fog: 0xc7d9df, fogNear: 24000, fogFar: 300000, clear: 0x122630,
+      zenith: 0x1c4a70, mid: 0x5b86a4, horizon: 0xcfd9d8,
+      skyLow: 0xa9bec4, skyHigh: 0x315f83, deep: 0x0d3442, shallow: 0x20606b, far: 0x143a47
+    },
+    noon: {
+      label: '正午', sunDir: [0.06, 0.92, 0.22], sunColor: 0xffffff, sunIntensity: 1.95, sunGlow: 0.16, night: 0,
+      hemiSky: 0xd7f1ff, hemiGround: 0x2b5564, hemiIntensity: 1.02, ambColor: 0x7fb0c0, ambIntensity: 0.48,
+      fog: 0xc4dfe8, fogNear: 32000, fogFar: 340000, clear: 0x0d1c26,
+      zenith: 0x0d4a80, mid: 0x4f8fb5, horizon: 0xd2edf2,
+      skyLow: 0xb5e0e8, skyHigh: 0x23659a, deep: 0x0b3a4a, shallow: 0x1f6774, far: 0x11566a
+    },
+    afternoon: {
+      label: '午后', sunDir: [-0.56, 0.36, -0.75], sunColor: 0xfff1d8, sunIntensity: 1.60, sunGlow: 0.12, night: 0,
+      hemiSky: 0xbfe0f2, hemiGround: 0x2c4a56, hemiIntensity: 0.95, ambColor: 0x6a8fa2, ambIntensity: 0.42,
+      fog: 0xa9c6d8, fogNear: 32000, fogFar: 320000, clear: 0x0d1c26,
+      zenith: 0x183f70, mid: 0x5b91ad, horizon: 0xb8d0dd,
+      skyLow: 0x8faebc, skyHigh: 0x214f7c, deep: 0x0d3140, shallow: 0x1d5b6b, far: 0x113442
+    },
+    dusk: {
+      label: '黄昏', sunDir: [-0.78, 0.12, 0.50], sunColor: 0xffb06a, sunIntensity: 1.05, sunGlow: 0.14, night: 0.08,
+      hemiSky: 0xd79a80, hemiGround: 0x2b2024, hemiIntensity: 0.62, ambColor: 0x8b6270, ambIntensity: 0.35,
+      fog: 0xb98c78, fogNear: 18000, fogFar: 260000, clear: 0x1b1118,
+      zenith: 0x2a2a54, mid: 0x8f6281, horizon: 0xe8a06c,
+      skyLow: 0xa97678, skyHigh: 0x383456, deep: 0x12222f, shallow: 0x344c56, far: 0x22313b
+    },
+    evening: {
+      label: '入夜', sunDir: [-0.68, 0.06, 0.42], sunColor: 0xff9d5e, sunIntensity: 0.72, sunGlow: 0.10, night: 0.35,
+      hemiSky: 0x8f7f9b, hemiGround: 0x241b27, hemiIntensity: 0.45, ambColor: 0x5c5e7e, ambIntensity: 0.30,
+      fog: 0x776b82, fogNear: 15000, fogFar: 220000, clear: 0x0d0b14,
+      zenith: 0x151d43, mid: 0x504667, horizon: 0xa8786f,
+      skyLow: 0x645d70, skyHigh: 0x20294c, deep: 0x0b1a26, shallow: 0x25404d, far: 0x17252f
+    },
+    night: {
+      label: '夜战', sunDir: [0.42, 0.54, -0.58], sunColor: 0xa9c9ff, sunIntensity: 0.34, sunGlow: 0.05, night: 1,
+      hemiSky: 0x4d6f9c, hemiGround: 0x0b1820, hemiIntensity: 0.25, ambColor: 0x354e68, ambIntensity: 0.18,
+      fog: 0x091826, fogNear: 12000, fogFar: 180000, clear: 0x03080d,
+      zenith: 0x050b1c, mid: 0x0f2340, horizon: 0x27445f,
+      skyLow: 0x182c3d, skyHigh: 0x091527, deep: 0x050f16, shallow: 0x102c38, far: 0x0a1a24
+    }
+  };
 
   Environment.prototype.createLights = function () {
     var scene = this.scene;
@@ -4771,17 +4871,23 @@ body {
     this.sun.position.copy(this.sunDir).multiplyScalar(9000);
     scene.add(this.sun);
 
-    var hemi = new THREE.HemisphereLight(0xbfe0f2, 0x2c4a56, 0.95);
-    scene.add(hemi);
+    this.hemi = new THREE.HemisphereLight(0xbfe0f2, 0x2c4a56, 0.95);
+    scene.add(this.hemi);
 
-    var amb = new THREE.AmbientLight(0x6a8fa2, 0.42);
-    scene.add(amb);
+    this.amb = new THREE.AmbientLight(0x6a8fa2, 0.42);
+    scene.add(this.amb);
   };
 
   Environment.prototype.createSky = function () {
     var uniforms = {
       uSunDir: { value: this.sunDir.clone() },
-      uFogColor: { value: this.fogColor.clone() }
+      uFogColor: { value: this.fogColor.clone() },
+      uZenith: { value: new THREE.Color(0x183f70) },
+      uMid: { value: new THREE.Color(0x5b91ad) },
+      uHorizon: { value: new THREE.Color(0xb8d0dd) },
+      uSunColor: { value: new THREE.Color(0xfff1d8) },
+      uSunGlow: { value: 0.12 },
+      uNight: { value: 0 }
     };
 
     var mat = new THREE.ShaderMaterial({
@@ -4796,21 +4902,29 @@ body {
       fragmentShader: [
         'uniform vec3 uSunDir;',
         'uniform vec3 uFogColor;',
+        'uniform vec3 uZenith;',
+        'uniform vec3 uMid;',
+        'uniform vec3 uHorizon;',
+        'uniform vec3 uSunColor;',
+        'uniform float uSunGlow;',
+        'uniform float uNight;',
         'varying vec3 vDir;',
         'void main(){',
         '  vec3 d = normalize(vDir);',
         '  float up = clamp(d.y, -1.0, 1.0);',
-        '  vec3 zenith  = vec3(0.095, 0.255, 0.455);',
-        '  vec3 mid     = vec3(0.395, 0.605, 0.775);',
-        '  vec3 horizon = vec3(0.705, 0.815, 0.885);',
         '  float t1 = smoothstep(0.02, 0.42, up);',
         '  float t2 = smoothstep(0.35, 0.95, up);',
-        '  vec3 col = mix(horizon, mid, t1);',
-        '  col = mix(col, zenith, t2);',
-        // 太阳光晕 + 日面
+        '  vec3 col = mix(uHorizon, uMid, t1);',
+        '  col = mix(col, uZenith, t2);',
+        // 太阳/月亮光晕 + 本体
         '  float sd = max(dot(d, normalize(uSunDir)), 0.0);',
-        '  col += vec3(1.0, 0.93, 0.80) * pow(sd, 14.0) * 0.12;',
-        '  col += vec3(1.0, 0.97, 0.90) * pow(sd, 900.0) * 1.15;',
+        '  col += uSunColor * pow(sd, 14.0) * uSunGlow;',
+        '  col += mix(vec3(1.0), uSunColor, 0.55) * pow(sd, 900.0) * 1.15;',
+        // 夜战星点：只在夜空出现，地平线附近淡出
+        '  vec3 cell = floor(d * 420.0);',
+        '  float h = fract(sin(dot(cell, vec3(12.9898, 78.233, 45.164))) * 43758.5453);',
+        '  float stars = step(0.9975, h) * smoothstep(0.0, 0.24, up) * uNight;',
+        '  col += vec3(0.72, 0.84, 1.0) * stars * 0.9;',
         // 地平线下方压暗（海天分界）
         '  float below = smoothstep(0.0, -0.14, up);',
         '  col = mix(col, uFogColor * 0.92, below);',
@@ -4882,6 +4996,8 @@ body {
     this.oceanUniforms.uSunColor = { value: this.sunColor.clone() };
     this.oceanUniforms.uDeep = { value: new THREE.Color(0x0d3140) };
     this.oceanUniforms.uShallow = { value: new THREE.Color(0x1d5b6b) };
+    this.oceanUniforms.uSkyLow = { value: new THREE.Color(0x8faebc) };
+    this.oceanUniforms.uSkyHigh = { value: new THREE.Color(0x214f7c) };
     this.oceanUniforms.uCenter = { value: new THREE.Vector2() };
     this.oceanUniforms.uHalf = { value: NEAR_SIZE * 0.5 };
     this.oceanUniforms.uFarColor = farUniforms.uFarColor;
@@ -4931,6 +5047,8 @@ body {
         'uniform vec3 uFogColor;',
         'uniform vec3 uDeep;',
         'uniform vec3 uShallow;',
+        'uniform vec3 uSkyLow;',
+        'uniform vec3 uSkyHigh;',
         'uniform vec3 uFarColor;',
         'uniform float uTime;',
         'uniform sampler2D uDetail;',
@@ -4962,7 +5080,7 @@ body {
         '  vec3 body = mix(uDeep, uShallow, clamp(vH * 0.05 + 0.45, 0.0, 1.0));',
         // 天空倒影：按反射方向的仰角取渐变
         '  vec3 R = reflect(-V, N);',
-        '  vec3 skyRefl = mix(vec3(0.560, 0.700, 0.800), vec3(0.130, 0.330, 0.545), pow(clamp(R.y, 0.0, 1.0), 0.55));',
+        '  vec3 skyRefl = mix(uSkyLow, uSkyHigh, pow(clamp(R.y, 0.0, 1.0), 0.55));',
         '  body = mix(body, skyRefl, clamp(fres * 0.42, 0.0, 0.46));',
         // 波面的漫反射明暗：迎光的波峰亮、背光的波谷暗（海面质感的来源）
         '  float lam = clamp(dot(N, normalize(uSunDir)), 0.0, 1.0);',
@@ -4991,6 +5109,61 @@ body {
     mesh.renderOrder = -5;
     this.scene.add(mesh);
     this.ocean = mesh;
+  };
+
+  /* 切换战场时段：一次改完天空、海面、光照、雾和背景色 */
+  Environment.prototype.setTimeOfDay = function (key) {
+    var p = TOD_PRESETS[key] || TOD_PRESETS.afternoon;
+    this.tod = TOD_PRESETS[key] ? key : 'afternoon';
+    this.todLabel = p.label;
+    this.sunDir.set(p.sunDir[0], p.sunDir[1], p.sunDir[2]).normalize();
+    this.sunColor.setHex(p.sunColor);
+    this.fogColor.setHex(p.fog);
+
+    if (this.sun) {
+      this.sun.color.setHex(p.sunColor);
+      this.sun.intensity = p.sunIntensity;
+      this.sun.position.copy(this.sunDir).multiplyScalar(9000);
+    }
+    if (this.hemi) {
+      this.hemi.color.setHex(p.hemiSky);
+      this.hemi.groundColor.setHex(p.hemiGround);
+      this.hemi.intensity = p.hemiIntensity;
+    }
+    if (this.amb) {
+      this.amb.color.setHex(p.ambColor);
+      this.amb.intensity = p.ambIntensity;
+    }
+
+    if (this.sky && this.sky.material && this.sky.material.uniforms) {
+      var su = this.sky.material.uniforms;
+      su.uSunDir.value.copy(this.sunDir);
+      su.uFogColor.value.setHex(p.fog);
+      su.uZenith.value.setHex(p.zenith);
+      su.uMid.value.setHex(p.mid);
+      su.uHorizon.value.setHex(p.horizon);
+      su.uSunColor.value.setHex(p.sunColor);
+      su.uSunGlow.value = p.sunGlow;
+      su.uNight.value = p.night;
+    }
+
+    if (this.oceanUniforms) {
+      this.oceanUniforms.uSunDir.value.copy(this.sunDir);
+      this.oceanUniforms.uSunColor.value.setHex(p.sunColor);
+      this.oceanUniforms.uFogColor.value.setHex(p.fog);
+      this.oceanUniforms.uDeep.value.setHex(p.deep);
+      this.oceanUniforms.uShallow.value.setHex(p.shallow);
+      this.oceanUniforms.uSkyLow.value.setHex(p.skyLow);
+      this.oceanUniforms.uSkyHigh.value.setHex(p.skyHigh);
+      this.oceanUniforms.uFarColor.value.setHex(p.far);
+    }
+
+    if (this.scene && this.scene.fog) {
+      this.scene.fog.color.setHex(p.fog);
+      this.scene.fog.near = p.fogNear;
+      this.scene.fog.far = p.fogFar;
+    }
+    if (this.renderer) this.renderer.setClearColor(p.clear, 1);
   };
 
   Environment.prototype.update = function (dt, camera, focus) {
@@ -9299,6 +9472,8 @@ body {
     this.hits = [];             // 本帧可点单位
     this.hover = null;
     this._drag = null;
+    this._ptrs = {};
+    this._pinch = null;
     this._listT = 0;
     this.build();
   }
@@ -9313,6 +9488,7 @@ body {
       '<header class="cmd-top">',
       '  <div class="cmd-title">战术指挥图<span>THEATER · GOD VIEW</span></div>',
       '  <div class="cmd-now" id="cmd-now">左键选中单位 / 双击进入 3D 观察 / 点空白设航向</div>',
+      '  <div class="cmd-tools"><button id="cmd-zin" title="放大">＋</button><button id="cmd-zout" title="缩小">－</button><button id="cmd-fitb">全图</button><span id="cmd-zlv">1.0×</span></div>',
       '  <div class="cmd-keys">M 关闭 · Esc 关闭</div>',
       '</header>',
       '<canvas id="cmd-canvas"></canvas>',
@@ -9331,6 +9507,12 @@ body {
     this.bar = root.querySelector('#cmd-bar');
     this.legend = root.querySelector('#cmd-legend');
     this.detail = root.querySelector('#cmd-detail');
+    this.zLevel = root.querySelector('#cmd-zlv');
+    this._fitMpp = 240;
+    var zin = root.querySelector('#cmd-zin'), zout = root.querySelector('#cmd-zout'), fitb = root.querySelector('#cmd-fitb');
+    if (zin) zin.addEventListener('click', function () { self.zoomStep(0.74); });
+    if (zout) zout.addEventListener('click', function () { self.zoomStep(1.35); });
+    if (fitb) fitb.addEventListener('click', function () { self.fit(true); self.draw(0); });
 
     var self = this;
     var acts = [
@@ -9356,10 +9538,39 @@ body {
     });
 
     this.canvas.addEventListener('pointerdown', function (e) {
+      self._ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+      if (Object.keys(self._ptrs).length >= 2) {
+        var ids = Object.keys(self._ptrs);
+        var a = self._ptrs[ids[0]], b = self._ptrs[ids[1]];
+        self._pinch = {
+          d: Math.max(12, Math.hypot(a.x - b.x, a.y - b.y)),
+          mpp: self.mpp,
+          mx: (a.x + b.x) * 0.5, my: (a.y + b.y) * 0.5
+        };
+        self._drag = null;
+        return;
+      }
       self._drag = { x: e.clientX, y: e.clientY, moved: false, sx: e.clientX, sy: e.clientY };
       try { self.canvas.setPointerCapture(e.pointerId); } catch (err) { }
     });
     this.canvas.addEventListener('pointermove', function (e) {
+      if (self._ptrs[e.pointerId]) { self._ptrs[e.pointerId].x = e.clientX; self._ptrs[e.pointerId].y = e.clientY; }
+      if (self._pinch) {
+        var ids = Object.keys(self._ptrs);
+        if (ids.length < 2) return;
+        var pa = self._ptrs[ids[0]], pb = self._ptrs[ids[1]];
+        var pd = Math.hypot(pa.x - pb.x, pa.y - pb.y);
+        var w = window.innerWidth, h = window.innerHeight;
+        var mx = (pa.x + pb.x) * 0.5, my = (pa.y + pb.y) * 0.5;
+        var wx = self.wx(mx), wz = self.wz(my);
+        self.mpp = U.clamp(self._pinch.mpp * (self._pinch.d / Math.max(12, pd)), 18, 2600);
+        self.cx = wx - (mx - w * 0.5) * self.mpp;
+        self.cz = wz + (my - h * 0.5) * self.mpp;
+        self.clampCenter();
+        self.updateZoom();
+        self.draw(0);
+        return;
+      }
       if (!self._drag) { self.updateHover(e); return; }
       if (!self._drag.moved && Math.hypot(e.clientX - self._drag.sx, e.clientY - self._drag.sy) < 8) return;
       self._drag.moved = true;
@@ -9370,21 +9581,25 @@ body {
       self.clampCenter();
     });
     this.canvas.addEventListener('pointerup', function (e) {
+      delete self._ptrs[e.pointerId];
+      if (Object.keys(self._ptrs).length < 2) self._pinch = null;
       var d = self._drag;
       self._drag = null;
       if (!d || d.moved) return;
       self.onClick(e);
     });
-    this.canvas.addEventListener('pointercancel', function () { self._drag = null; });
+    this.canvas.addEventListener('pointercancel', function (e) {
+      delete self._ptrs[e.pointerId];
+      if (Object.keys(self._ptrs).length < 2) self._pinch = null;
+      self._drag = null;
+    });
     this.canvas.addEventListener('dblclick', function (e) {
       var hit = self.pickAt(e.clientX, e.clientY);
       if (hit) { self.observeObj(hit.obj); }
     });
     this.canvas.addEventListener('wheel', function (e) {
       e.preventDefault();
-      var f = Math.exp(e.deltaY * 0.0011);
-      self.mpp = U.clamp(self.mpp * f, 18, 2400);
-      self.draw(0);
+      self.zoomStep(Math.exp(e.deltaY * 0.0011), e.clientX, e.clientY);
     }, { passive: false });
     this.root.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   };
@@ -9411,24 +9626,55 @@ body {
     if (this.hud && this.hud.root) this.hud.root.classList.remove('cmd-mode');
   };
 
-  C.fit = function () {
+  C.fit = function (full) {
     var g = this.game, minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9;
-    var list = g.ships.concat(g.aircraft);
+    var list = [];
+    for (var k = 0; k < g.ships.length; k++) {
+      var sh = g.ships[k];
+      if (sh.alive && (sh.team === 'blue' || sh.detected)) list.push(sh);
+    }
+    for (var a = 0; a < g.aircraft.length; a++) {
+      var ac = g.aircraft[a];
+      if (ac.alive && (ac.team === 'blue' || ac.detected)) list.push(ac);
+    }
     for (var i = 0; i < list.length; i++) {
       var o = list[i];
-      if (!o.alive) continue;
       minX = Math.min(minX, o.pos.x); maxX = Math.max(maxX, o.pos.x);
       minZ = Math.min(minZ, o.pos.z); maxZ = Math.max(maxZ, o.pos.z);
     }
-    if (minX > maxX) { minX = -60000; maxX = 60000; minZ = -60000; maxZ = 60000; }
+    if (minX > maxX) { minX = -24000; maxX = 24000; minZ = -24000; maxZ = 24000; }
     this.cx = (minX + maxX) * 0.5;
     this.cz = (minZ + maxZ) * 0.5;
-    var spanX = Math.max(40000, (maxX - minX) * 1.45);
-    var spanZ = Math.max(40000, (maxZ - minZ) * 1.45);
+    // 只框已知单位：开局未探测的敌舰不再把地图拉得很远
+    var spanX = Math.max(24000, (maxX - minX) * 1.26);
+    var spanZ = Math.max(24000, (maxZ - minZ) * 1.26);
     var w = window.innerWidth, h = window.innerHeight;
-    this.mpp = Math.max(spanX / w, spanZ / (h - 110));
-    this.mpp = U.clamp(this.mpp, 60, 1200);
+    var base = Math.max(spanX / w, spanZ / (h - 110));
+    base = U.clamp(base, 24, 1600);
+    this._fitMpp = base;
+    // 打开时默认比“全图”再放大一档；点“全图”回到完整范围
+    this.mpp = full ? base : base * 0.68;
+    this.updateZoom();
     this.clampCenter();
+  };
+
+  C.updateZoom = function () {
+    if (!this.zLevel) return;
+    var r = (this._fitMpp || this.mpp) / this.mpp;
+    this.zLevel.textContent = (r >= 1 ? r.toFixed(1) : r.toFixed(2)) + '×';
+  };
+
+  C.zoomStep = function (f, px, py) {
+    var w = window.innerWidth, h = window.innerHeight;
+    px = (px == null) ? w * 0.5 : px;
+    py = (py == null) ? h * 0.5 : py;
+    var wx = this.wx(px), wz = this.wz(py);
+    this.mpp = U.clamp(this.mpp * f, 18, 2600);
+    this.cx = wx - (px - w * 0.5) * this.mpp;
+    this.cz = wz + (py - h * 0.5) * this.mpp;
+    this.clampCenter();
+    this.updateZoom();
+    this.draw(0);
   };
 
   C.clampCenter = function () {
@@ -9491,8 +9737,14 @@ body {
   C.observeObj = function (obj) {
     this.close();
     if (obj.team === 'red') { this.game.lockTarget(obj); this.game.observe(obj, 1100); }
-    else if (obj.def && obj.def.armament) { this.game.selectShip(obj); this.game.observe(obj, 300); }
-    else { this.game.observe(obj, 2600); }   // 预警机等
+    else if (obj.def && obj.def.armament) {
+      this.game.selectShip(obj);
+      // 本舰/友舰只切跟随，不强行改距；保持进指挥图前的好视角
+      if (this.game.cam.mode !== 'free') {
+        this.game.cam.follow = obj;
+        this.game.cam.followHeading = (typeof obj.setCourse === 'function');
+      }
+    } else { this.game.observe(obj, 2600); }   // 预警机等
   };
 
   C.say = function (t) {
@@ -9708,7 +9960,7 @@ body {
       ctx.lineTo(mx, my);
       ctx.stroke();
       ctx.fillStyle = ms.team === 'red' ? '#ff8f6b' : '#8fe9ff';
-      ctx.beginPath(); ctx.arc(mx, my, 2.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(mx, my, 3.2, 0, Math.PI * 2); ctx.fill();
     }
 
     // ---- 航迹：每 0.45s 采样一次，最多 80 点，画出最近 40 秒走过的路
@@ -9759,13 +10011,13 @@ body {
       ctx.fillStyle = ac2.state === 'ingress' ? 'rgba(120,220,255,0.2)' : (blue2 ? 'rgba(120,220,255,0.55)' : 'rgba(255,150,110,0.5)');
       ctx.lineWidth = 1.4;
       ctx.beginPath();
-      ctx.moveTo(0, -8); ctx.lineTo(8, 0); ctx.lineTo(0, 8); ctx.lineTo(-8, 0); ctx.closePath();
+      ctx.moveTo(0, -10); ctx.lineTo(10, 0); ctx.lineTo(0, 10); ctx.lineTo(-10, 0); ctx.closePath();
       ctx.stroke(); ctx.fill();
       ctx.restore();
       ctx.fillStyle = blue2 ? '#9cecff' : '#ffab8f';
-      ctx.font = '10px Consolas, monospace';
+      ctx.font = '11px Consolas, monospace';
       ctx.textAlign = 'left';
-      ctx.fillText(blue2 ? 'AEW' : 'AEW-R', ax2 + 11, ay2 + 3);
+      ctx.fillText(blue2 ? 'AEW' : 'AEW-R', ax2 + 13, ay2 + 3);
       this.hits.push({ obj: ac2, sx: ax2, sy: ay2 });
     }
 
@@ -9818,7 +10070,7 @@ body {
     ctx.translate(x, y);
     ctx.rotate(sh.heading);   // 尖端 (0,-9) 朝上 = 航向 0（北）
     ctx.beginPath();
-    ctx.moveTo(0, -9); ctx.lineTo(6, 7); ctx.lineTo(0, 4); ctx.lineTo(-6, 7);
+    ctx.moveTo(0, -12); ctx.lineTo(8, 9); ctx.lineTo(0, 5); ctx.lineTo(-8, 9);
     ctx.closePath();
     ctx.fillStyle = red ? 'rgba(255,110,70,0.85)' : 'rgba(110,225,255,0.85)';
     ctx.fill();
@@ -9829,18 +10081,18 @@ body {
 
     if (selected || locked) {
       ctx.strokeStyle = '#ffd166';
-      ctx.lineWidth = 1.6;
-      ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2); ctx.stroke();
-      if (locked) { ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.stroke(); }
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.stroke();
+      if (locked) { ctx.beginPath(); ctx.arc(x, y, 23, 0, Math.PI * 2); ctx.stroke(); }
     }
 
     var label = (red ? 'T' : 'B') + (sh.pennant || '--');
     if (red && this.game.blueMain) label += ' ' + U.distLabel(U.distXZ(this.game.blueMain.pos, sh.pos));
     else label += ' ' + Math.round(sh.speed) + 'kn';
     ctx.fillStyle = red ? '#ffab8b' : '#a8ebff';
-    ctx.font = '10px Consolas, monospace';
+    ctx.font = '11.5px Consolas, monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(label, x + 13, y + 3);
+    ctx.fillText(label, x + 16, y + 3);
 
     this.hits.push({ obj: sh, sx: x, sy: y });
   };
@@ -9934,16 +10186,7 @@ body {
       '<div class="hud-help">左键 选择 / 点海面 设航向 · 右键 锁定并发射 · 左键拖拽 平移 · 右键或 Shift+拖拽 旋转 · 滚轮 缩放 · Home 回本舰 · T 观察目标 · Q/E 旋向 · F/C 远近 · Space 暂停 · 1-4 倍速 · G 发射 · H 齐射 · Z 全速 · R 停车 · A 预警机</div>',
 
       '<div class="hud-alert" id="alert"></div>',
-      '<div class="hud-result" id="result"></div>',
-      '<div class="refill-mask hidden" id="refill-mask">' +
-        '<div class="refill-card">' +
-          '<div class="rf-head"><b>续弹补给</b><button id="rf-close">×</button></div>' +
-          '<p class="rf-sub">备用补给：关注作者后，每关可把当前舰导弹补满一次。网页端无法读取B站账号状态，关注确认在本机记录。</p>' +
-          '<a class="rf-follow" id="rf-link" href="https://space.bilibili.com/604149349" target="_blank" rel="noopener">去B站关注 @不会取名的基米</a>' +
-          '<label class="rf-check"><input id="rf-check" type="checkbox" disabled> 我已关注，领取续弹</label>' +
-          '<div class="rf-actions"><button id="rf-cancel">取消</button><button id="rf-claim" disabled>领取续弹</button></div>' +
-        '</div>' +
-      '</div>'
+      '<div class="hud-result" id="result"></div>'
     ].join('');
 
     document.body.appendChild(root);
@@ -10012,11 +10255,6 @@ body {
     this.logEl = root.querySelector('#log');
     this.alertEl = root.querySelector('#alert');
     this.resultEl = root.querySelector('#result');
-    this.refillMask = root.querySelector('#refill-mask');
-    this.refillCheck = root.querySelector('#rf-check');
-    this.refillClaim = root.querySelector('#rf-claim');
-    this.refillLink = root.querySelector('#rf-link');
-    this.bindRefill();
     this.mm = root.querySelector('#mm');
     this.mmCtx = this.mm.getContext('2d');
     this.rdInfo = root.querySelector('#rd-info');
@@ -10162,17 +10400,28 @@ body {
     this.ctlHdg = this.ctl.querySelector('#ctl-hdg');
 
     /* ---- 右：战斗 / 侦查（武器选择 + 发射 + 雷达 + 指挥） ---- */
+    var refillDockHtml =
+      '<div class="refill-dock hidden" id="refill-dock">' +
+        '<button class="refill-entry" id="refill-entry"><b>续弹</b><span>导弹耗尽 · 关注作者补一轮满载</span><u>补</u></button>' +
+        '<div class="refill-gate hidden" id="refill-gate">' +
+          '<div class="rg-top"><b>关注作者 · 每舰每关补一轮</b><button id="rf-close" title="收起">×</button></div>' +
+          '<a class="rg-follow" id="rf-link" href="https://space.bilibili.com/604149349" target="_blank" rel="noopener">去B站关注 @不会取名的基米</a>' +
+          '<div class="rg-row"><label class="rg-check"><input id="rf-check" type="checkbox" disabled> 已关注</label><button class="rg-claim" id="rf-claim" disabled>领取续弹</button></div>' +
+          '<div class="rg-note">网页端无法读取B站账号状态，关注确认在本机记录</div>' +
+        '</div>' +
+      '</div>';
     var ops = [
       { act: 'wsel', label: '武器', hint: '▾', cls: 'wsel wide' },
       { act: 'fire', label: '发射', hint: 'G', cls: 'hot' },
       { act: 'salvo', label: '齐射×3', hint: 'H', cls: 'hot' },
-      { act: 'refill', label: '续弹', hint: '备', cls: 'sen' },
+      { dock: refillDockHtml },
       { act: 'radar', label: '雷达', hint: 'ON', cls: 'sen' },
       { act: 'rng', label: '量程', hint: '120', cls: 'sen' },
       { act: 'awacs', label: '预警机', hint: 'A', cls: 'sen' },
       { act: 'cmd', label: '指挥图', hint: 'M', cls: 'sen' }
     ];
     this.orders.innerHTML = ops.map(function (o) {
+      if (o.dock) return o.dock;
       return '<button data-act="' + o.act + '" class="' + o.cls + '">' + o.label + '<u>' + o.hint + '</u></button>';
     }).join('');
     this.wselBtn = this.orders.querySelector('[data-act="wsel"]');
@@ -10180,8 +10429,15 @@ body {
     this.radarBtn = this.orders.querySelector('[data-act="radar"]');
     this.fireBtn = this.orders.querySelector('[data-act="fire"]');
     this.salvoBtn = this.orders.querySelector('[data-act="salvo"]');
+    this.refillDock = this.orders.querySelector('#refill-dock');
+    this.refillEntry = this.orders.querySelector('#refill-entry');
+    this.refillGate = this.orders.querySelector('#refill-gate');
+    this.refillCheck = this.orders.querySelector('#rf-check');
+    this.refillClaim = this.orders.querySelector('#rf-claim');
+    this.refillLink = this.orders.querySelector('#rf-link');
     this.viewBtn = this.root.querySelector('#top-vie');
     this.viewTag = this.root.querySelector('#view-tag');
+    this.bindRefill();
 
     /* ---- 中间：单位条（随时切视角） ---- */
     this.buildUnits();
@@ -10358,7 +10614,14 @@ body {
     var self = this;
     setTimeout(function () { self.closeUnits(); }, 120);
     if (key === 'main') {
-      if (g.blueMain) { g.selectShip(g.blueMain); g.observe(g.blueMain, 300); }
+      if (g.blueMain) {
+        g.selectShip(g.blueMain);
+        // 只切跟随对象，不改当前时代/拉近程度；Home 才回到标准船尾视角
+        if (g.cam.mode !== 'free') {
+          g.cam.follow = g.blueMain;
+          g.cam.followHeading = (typeof g.blueMain.setCourse === 'function');
+        }
+      }
       return;
     }
     if (key === 'tgt') {
@@ -10562,48 +10825,85 @@ body {
     this.game.log('武器选择 —— ' + (d ? d.name : this.weapon) + '（' + Math.round((d ? d.range : 0) / 1000) + ' km）', 'hint');
   };
 
-  /* 续弹：关注作者后的备用补给；每关一次，补满当前舰导弹 */
+  /* 续弹：藏在导弹齐射后面，只有导弹耗尽才出现；不另开窗口 */
   HUD.prototype.bindRefill = function () {
     var self = this;
-    if (!this.refillMask) return;
+    if (!this.refillEntry) return;
     var saved = false;
     try { saved = !!(window.localStorage && window.localStorage.getItem('sp_follow_author') === '1'); } catch (e) { }
     var sync = function () {
       if (!self.refillClaim) return;
       self.refillClaim.disabled = !(self.refillCheck && self.refillCheck.checked);
     };
-    var close = function () { self.refillMask.classList.add('hidden'); };
-    if (saved) { this.refillCheck.disabled = false; this.refillCheck.checked = true; }
+    var openGate = function () {
+      self.refillGate.classList.remove('hidden');
+      self.refillEntry.classList.add('hidden');
+      self._refillOpen = true;
+    };
+    var closeGate = function () {
+      self.refillGate.classList.add('hidden');
+      self.refillEntry.classList.remove('hidden');
+      self._refillOpen = false;
+    };
+    if (saved && this.refillCheck) { this.refillCheck.disabled = false; this.refillCheck.checked = true; }
     sync();
     if (this.refillLink) this.refillLink.addEventListener('click', function () {
-      // 打开B站主页后解锁关注确认；网页端无法验真，只做本机记录
+      // 打开B站主页后解锁本机确认；真正的平台校验需要 B 站登录授权与后端
       setTimeout(function () { self.refillCheck.disabled = false; sync(); }, 0);
     });
     if (this.refillCheck) this.refillCheck.addEventListener('change', sync);
-    var cancel = this.refillMask.querySelector('#rf-cancel');
-    var closeBtn = this.refillMask.querySelector('#rf-close');
-    if (cancel) cancel.addEventListener('click', close);
-    if (closeBtn) closeBtn.addEventListener('click', close);
+    var closeBtn = this.refillGate.querySelector('#rf-close');
+    if (closeBtn) closeBtn.addEventListener('click', closeGate);
+
+    if (this.refillEntry) this.refillEntry.addEventListener('click', function () {
+      var g = self.game;
+      if (!g.battle || g.result) { g.log('关卡战斗中才能申请续弹', 'warn'); return; }
+      var s = g.selected || g.blueMain;
+      if (!s || !s.alive || s.team !== 'blue') { g.log('请先选中一艘我方舰艇', 'warn'); return; }
+      if (s._refillUsed) { g.log('本舰本关已经补过了', 'warn'); self.updateRefillDock(); return; }
+      var savedNow = false;
+      try { savedNow = !!(window.localStorage && window.localStorage.getItem('sp_follow_author') === '1'); } catch (e) { }
+      if (savedNow) {
+        var r0 = g.refillAmmo ? g.refillAmmo() : { ok: false, msg: '补给不可用' };
+        if (g.log) g.log(r0.msg, r0.ok ? 'hint' : 'warn');
+        if (r0.ok) { closeGate(); self.updateRefillDock(); }
+        return;
+      }
+      self.refillCheck.disabled = true;
+      self.refillCheck.checked = false;
+      self.refillClaim.disabled = true;
+      openGate();
+      g.log('续弹需要先关注作者：点“去B站关注”，回来勾选后领取', 'hint');
+    });
+
     if (this.refillClaim) this.refillClaim.addEventListener('click', function () {
       if (!self.refillCheck.checked) return;
       try { if (window.localStorage) window.localStorage.setItem('sp_follow_author', '1'); } catch (e) { }
       var r = self.game.refillAmmo ? self.game.refillAmmo() : { ok: false, msg: '补给不可用' };
       if (self.game.log) self.game.log(r.msg, r.ok ? 'hint' : 'warn');
-      if (r.ok) close();
+      if (r.ok) { closeGate(); self.updateRefillDock(); }
     });
   };
 
-  HUD.prototype.openRefill = function () {
-    if (!this.refillMask) return;
+  /* 导弹耗尽才把续弹入口露出来；入口在齐射按钮下方，不另开窗口 */
+  HUD.prototype.updateRefillDock = function () {
+    if (!this.refillDock) return;
     var g = this.game;
-    if (!g.battle || g.result) { g.log('关卡战斗中才能申请续弹', 'warn'); return; }
-    if (g._refillUsed) { g.log('本关续弹已经领取过了', 'warn'); return; }
-    var saved = false;
-    try { saved = !!(window.localStorage && window.localStorage.getItem('sp_follow_author') === '1'); } catch (e) { }
-    this.refillCheck.disabled = !saved;
-    this.refillCheck.checked = saved;
-    this.refillClaim.disabled = !saved;
-    this.refillMask.classList.remove('hidden');
+    var s = g.selected || g.blueMain;
+    var show = false;
+    if (g.battle && !g.result && s && s.alive && s.team === 'blue' && s.ammo && !s._refillUsed) {
+      Object.keys(s.ammo).forEach(function (id) {
+        var d = g.missilesById[id];
+        if (!d || d.role === 'ciws') return;
+        if ((s.ammo[id] || 0) <= 0) show = true;
+      });
+    }
+    this.refillDock.classList.toggle('hidden', !show);
+    if (!show) {
+      this.refillGate.classList.add('hidden');
+      this.refillEntry.classList.remove('hidden');
+      this._refillOpen = false;
+    }
   };
   // 发射按钮上的装填倒计时（CD）
   HUD.prototype.refreshCD = function () {
@@ -10680,7 +10980,6 @@ body {
       case 'cmd': this.toggleCommand(); this.say('指挥图'); break;
       case 'fire': g.orderAttack(wid || 'yj18', 1); this.updateWeapon(); break;
       case 'salvo': g.orderAttack(wid || 'yj18', 3); this.updateWeapon(); break;
-      case 'refill': this.openRefill(); break;
       case 'wsel': this.cycleWeapon(); if (wid) this.say('武器，' + ((g.missilesById[wid] || {}).name || '')); break;
       case 'radar': this.radar.togglePower(); this.updateWeapon(); this.say(this.radar.power ? '雷达开机' : '雷达待机'); break;
       case 'rng': this.radar.cycleRange(); this.updateWeapon(); this.say('量程' + Math.round(this.radar.range() / 1000) + '公里'); break;
@@ -10716,6 +11015,9 @@ body {
 
   HUD.prototype.onSelect = function (ship) {
     this.selected = ship;
+    this._refillOpen = false;
+    if (this.refillGate) this.refillGate.classList.add('hidden');
+    if (this.refillEntry) this.refillEntry.classList.remove('hidden');
     if (!ship) { this.panel.innerHTML = ''; return; }
     var isBlue = ship.team === 'blue';
     var d = ship.def;
@@ -10834,6 +11136,7 @@ body {
       this._uTimer = 0.4;
       this.refreshUnits();
       this.updateWeapon();
+      this.updateRefillDock();
       this.refreshViewTag();
     }
     this.updateWeaponCD();
@@ -12180,10 +12483,10 @@ body {
     // 空中目标（飞机 / 在飞的导弹）不需要这个抬高，否则目标会被挤到画面下方
     var lift = Math.min(4.2 * U.D2R, Math.max(0, c.elev) * 0.22);
     var air = (c.target.y || 0) > 60 || !!(c.follow && typeof c.follow.desiredAlt === 'function');
-    // 跟船：船体压在画面中线附近（只抬一点点），跟弹/跟机保持原来的抬升
-    var shipFollow = c.followHeading && c.follow && typeof c.follow.setCourse === 'function';
-    var liftY = air ? 0 : (shipFollow ? (Math.tan(lift * 0.35) * c.dist) : (30 + Math.tan(lift) * c.dist));
-    this.camera.lookAt(c.target.x, c.target.y + liftY + (shipFollow ? c.dist * 0.05 : 0), c.target.z);
+    // 跟船：不管是否手动环绕，都把船体放在画面中线，避免一拖就掉到画面下半部
+    var shipFollow = !!(c.follow && typeof c.follow.setCourse === 'function');
+    var liftY = air ? 0 : (shipFollow ? 0 : (30 + Math.tan(lift) * c.dist));
+    this.camera.lookAt(c.target.x, c.target.y + liftY, c.target.z);
   };
 
   /* --------------------------------------------------------------- 场景 */
@@ -12255,10 +12558,10 @@ body {
     c.followHeading = (typeof s.setCourse === 'function');
     c.target.set(s.pos.x, 0, s.pos.z);
     c.targetGoal.set(s.pos.x, 0, s.pos.z);
-    c.distGoal = 300;
+    c.distGoal = (s.def && s.def.hull && s.def.hull.length ? s.def.hull.length : 120) * 2.2;
     c.azGoal = (c.followHeading ? s.heading + Math.PI : 128 * U.D2R);
     c.elevGoal = 24 * U.D2R;
-    this.log('视角复位 —— 跟随本舰 ' + s.pennant + '（480 m · 船尾后方）', 'hint');
+    this.log('视角复位 —— 跟随本舰 ' + s.pennant + '（' + Math.round(c.distGoal) + ' m · 船尾后方）', 'hint');
   };
 
   /** 观察某个对象（舰 / 飞机 / 飞行中的导弹都行）：镜头跟随并拉到合适视距 */
@@ -13069,6 +13372,11 @@ body {
     var tmpHit = new THREE.Vector3();
     var raycaster = new THREE.Raycaster();
 
+    // 跟船时不允许把俯仰角拖到贴海面；初始 24° 就是好视角
+    function shipMinElev(c) {
+      return (c.follow && typeof c.follow.setCourse === 'function') ? 24 * U.D2R : 12 * U.D2R;
+    }
+
     function ndc(ev) {
       var r = el.getBoundingClientRect();
       return new THREE.Vector2(
@@ -13110,12 +13418,19 @@ body {
       return {
         d: Math.max(12, Math.hypot(a.x - b.x, a.y - b.y)),
         dist0: self.cam.distGoal,
-        mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2
+        mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2,
+        ax: a.x, ay: a.y, bx: b.x, by: b.y,
+        zoomed: false
       };
     }
 
     el.addEventListener('pointerdown', function (e) {
-      ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+      // 清掉上一轮可能没收到 pointerup 的残留触点，避免单指滑动被误判成双指捏合
+      var now = Date.now();
+      Object.keys(ptrs).forEach(function (id) {
+        if (!ptrs[id] || now - (ptrs[id].t || 0) > 8000) delete ptrs[id];
+      });
+      ptrs[e.pointerId] = { x: e.clientX, y: e.clientY, t: now };
       if (Object.keys(ptrs).length >= 2) {
         drag = null;
         pinch = beginPinch();
@@ -13131,19 +13446,35 @@ body {
     });
 
     el.addEventListener('pointermove', function (e) {
-      if (ptrs[e.pointerId]) { ptrs[e.pointerId].x = e.clientX; ptrs[e.pointerId].y = e.clientY; }
+      if (ptrs[e.pointerId]) {
+        ptrs[e.pointerId].x = e.clientX;
+        ptrs[e.pointerId].y = e.clientY;
+        ptrs[e.pointerId].t = Date.now();
+      }
       if (pinch) {
         var ids = Object.keys(ptrs);
         if (ids.length < 2) return;
         var pa = ptrs[ids[0]], pb = ptrs[ids[1]];
         var pd = Math.hypot(pa.x - pb.x, pa.y - pb.y);
-        if (pd > 12) self.cam.distGoal = U.clamp(pinch.dist0 * (pinch.d / pd), 18, 320000);
+        // 只把“两指沿连线反向张合”当捏合缩放；双指平行滑动/旋转不拉近
+        var ux = pd > 1 ? (pb.x - pa.x) / pd : 1, uy = pd > 1 ? (pb.y - pa.y) / pd : 0;
+        var ra = (pa.x - pinch.ax) * ux + (pa.y - pinch.ay) * uy;
+        var rb = (pb.x - pinch.bx) * ux + (pb.y - pinch.by) * uy;
+        var spread = (ra < -2 && rb > 2) || (ra > 2 && rb < -2);
+        if (pinch.zoomed || (spread && Math.abs(pd - pinch.d) > 12)) {
+          pinch.zoomed = true;
+          if (pd > 12) self.cam.distGoal = U.clamp(pinch.dist0 * (pinch.d / pd), 18, 320000);
+        }
+        pinch.ax = pa.x; pinch.ay = pa.y;
+        pinch.bx = pb.x; pinch.by = pb.y;
         var pmx = (pa.x + pb.x) / 2, pmy = (pa.y + pb.y) / 2;
         var mdx = -(pmx - pinch.mx), mdy = pmy - pinch.my;
         if (mdx || mdy) {
           if (self.cam.follow) {
             self.cam.azGoal -= mdx * 0.004;
-            self.cam.elevGoal = U.clamp(self.cam.elevGoal + mdy * 0.003, 12 * U.D2R, 82 * U.D2R);
+            if (!(self.cam.follow && typeof self.cam.follow.setCourse === 'function')) {
+              self.cam.elevGoal = U.clamp(self.cam.elevGoal + mdy * 0.003, shipMinElev(self.cam), 82 * U.D2R);
+            }
           } else {
             self.camera.getWorldDirection(tmpDir);
             tmpDir.y = 0;
@@ -13175,6 +13506,8 @@ body {
 
       if (drag.mode === 'rotate') {
         var cc = self.cam;
+        var minE = shipMinElev(cc);
+        var shipLock = !!(cc.follow && typeof cc.follow.setCourse === 'function');
         if (cc.follow && typeof cc.follow.desiredAlt === 'function') {
           // 跟弹：左右拖拽绕弹体旋转（-170°~+170°），上下拖拽改俯仰
           if (cc.mslAzOff == null) cc.mslAzOff = 0.34;
@@ -13184,7 +13517,8 @@ body {
           cc.followHeading = false;      // 手动环绕：暂时脱离船尾后方
           cc.azGoal -= dx * 0.004;
         }
-        cc.elevGoal = U.clamp(cc.elevGoal + dy * 0.003, 12 * U.D2R, 82 * U.D2R);
+        // 跟船时只绕船转，不因手指上下抖动把俯仰角压低/抬高；初始 24° 保持
+        if (!shipLock) cc.elevGoal = U.clamp(cc.elevGoal + dy * 0.003, minE, 82 * U.D2R);
       } else {
         // 手动平移 = 自由视角，自动解除跟随
         if (self.cam.follow) {
@@ -13226,6 +13560,16 @@ body {
       pinch = null;
       drag = null;
     });
+    // 手指可能滑出画布后抬起；在 window 上兜底清理，避免残留触点
+    window.addEventListener('pointerup', function (e) {
+      delete ptrs[e.pointerId];
+      if (Object.keys(ptrs).length < 2) pinch = null;
+    });
+    window.addEventListener('pointercancel', function (e) {
+      delete ptrs[e.pointerId];
+      if (Object.keys(ptrs).length < 2) pinch = null;
+    });
+    window.addEventListener('blur', function () { ptrs = {}; pinch = null; drag = null; });
 
     el.addEventListener('wheel', function (e) {
       e.preventDefault();
@@ -13516,6 +13860,7 @@ body {
   SW.Game.prototype.startBattle = function (mission, side) {
     this.clearBattle();
     this._musicAlertUntil = 0;
+    if (this.env && this.env.setTimeOfDay) this.env.setTimeOfDay(mission.tod || 'afternoon');
     if (window.SW && SW.Audio) SW.Audio.setMusic('battle');
     var other = (side === 'red') ? 'blue' : 'red';
     var myForce = mission.forces[side] || { name: '我方', ships: [] };
@@ -13534,19 +13879,11 @@ body {
       theirs = theirs.concat(spawnGroup(this, 'red', enForce.ships[b], enDep, enDep.heading));
     }
 
-    // 部分早期关卡导弹基数偏少，给玩家一侧补足（不加强敌方，避免对冲后仍然弹尽）
-    var ammoScale = mission.ammoScale || 1;
-    if (ammoScale > 1) {
-      mine.forEach(function (sh) {
-        Object.keys(sh.ammo || {}).forEach(function (id) {
-          sh.ammo[id] = Math.ceil(sh.ammo[id] * ammoScale);
-        });
-      });
-    }
-    // 记录本关满弹基数，供“关注后续弹”一键补满（不是简单加几发）
+    // 记录本舰原始满载枚数，供“关注后续弹”按同一满载量补一轮（不预先翻倍）
     mine.forEach(function (sh) {
-      sh._ammoMax = {};
-      Object.keys(sh.ammo || {}).forEach(function (id) { sh._ammoMax[id] = sh.ammo[id]; });
+      sh._ammoFull = {};
+      Object.keys(sh.ammo || {}).forEach(function (id) { sh._ammoFull[id] = sh.ammo[id]; });
+      sh._refillUsed = false;
     });
 
     this.blueMain = mine[0] || null;
@@ -13585,6 +13922,7 @@ body {
     };
 
     this.log('作战开始 · ' + (mission.name || '遭遇战') + '（' + (mission.kind === 'skirmish' ? '遭遇战' : '战役第 ' + (mission.idx + 1) + ' 关') + '）', 'info');
+    if (this.env && this.env.todLabel) this.log('战场时段 · ' + this.env.todLabel, 'hint');
     this.log('我方：' + this.playerForceName + '（' + mine.length + ' 艘） ｜ 敌方：' + this.enemyForceName + '（' + theirs.length + ' 艘）', 'info');
     if (mission.brief) this.log(mission.brief, 'hint');
     this.log('任务目标：' + objText, 'hint');
@@ -13602,29 +13940,35 @@ body {
     this.paused = false;
   };
 
-  /** 关注作者后的备用补给：每关一次，把玩家当前舰补回本关满弹基数 */
+  /** 关注作者后的备用补给：每舰每关一次，按原始满载枚数补一轮（不预先翻倍） */
   SW.Game.prototype.refillAmmo = function () {
     if (!this.battle || this.battle.over || this.result) return { ok: false, msg: '当前不在战斗中' };
-    if (this._refillUsed) return { ok: false, msg: '本关续弹已经领取过了' };
     var s = this.selected || this.blueMain;
     if (!s || !s.alive || s.team !== 'blue') return { ok: false, msg: '请先选中一艘我方舰艇' };
-    if (!s._ammoMax) return { ok: false, msg: '本舰没有可补的导弹基数' };
+    if (s._refillUsed) return { ok: false, msg: '本舰本关已经补过了' };
+    if (!s._ammoFull) return { ok: false, msg: '本舰没有可补的导弹基数' };
     var added = 0;
-    Object.keys(s._ammoMax).forEach(function (id) {
+    Object.keys(s._ammoFull).forEach(function (id) {
+      var full = s._ammoFull[id] || 0;
+      if (full <= 0) return;
       var have = s.ammo[id] || 0;
-      if (have < s._ammoMax[id]) { added += s._ammoMax[id] - have; s.ammo[id] = s._ammoMax[id]; }
+      if (have >= full) return;                 // 已经满的弹种不白加
+      var n = Math.min(full, full * 2 - have);  // 一次最多补到两轮满载
+      s.ammo[id] = have + n;
+      added += n;
     });
     if (!added) return { ok: false, msg: '弹药已满，不需要续弹' };
-    this._refillUsed = true;
-    this.log('补给完成 —— ' + s.pennant + ' 导弹补满（本关一次）', 'hint');
+    s._refillUsed = true;
+    this.log('补给完成 —— ' + s.pennant + ' 按满载量补一轮（共 ' + added + ' 发）', 'hint');
     if (window.SW && SW.Audio) {
-      if (SW.Audio.radio) SW.Audio.radio('导弹补给完成，弹药已补满', { role: 'bridge', force: true, gap: 0 });
+      if (SW.Audio.radio) SW.Audio.radio('导弹补给完成，按满载量补一轮', { role: 'bridge', force: true, gap: 0 });
     }
     if (this.hud) {
       if (this.hud.refreshAmmo) this.hud.refreshAmmo();
       if (this.hud.updateWeapon) this.hud.updateWeapon();
+      if (this.hud.updateRefillDock) this.hud.updateRefillDock();
     }
-    return { ok: true, msg: '补给完成，补了 ' + added + ' 发导弹' };
+    return { ok: true, msg: '补给完成，按满载量补了 ' + added + ' 发导弹' };
   };
 
   /** 每帧判定（由 game.frame 调用） */
